@@ -438,9 +438,11 @@ class EditorApp {
                 const val = value !== null && value !== undefined ? Number(value) : minVal;
                 const pct = maxVal > minVal ? Math.min(Math.max(((val - minVal) / (maxVal - minVal)) * 100, 0), 100) : 0;
                 const displayColor = this._getColorForValue(val, widget.config) || 'var(--accent)';
+                const gaugePrecision = widget.config.precision;
+                const gaugeDisplay = (gaugePrecision != null && gaugePrecision >= 0) ? val.toFixed(gaugePrecision) : val;
                 valueDisplay = `
                     <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px;">
-                        <div style="font-size:${fontSize}px;font-weight:700;color:${displayColor};font-family:var(--font-mono);">${val}</div>
+                        <div style="font-size:${fontSize}px;font-weight:700;color:${displayColor};font-family:var(--font-mono);">${gaugeDisplay}</div>
                         <div style="width:100%;height:6px;background:var(--bg-medium);border-radius:3px;margin-top:8px;overflow:hidden;">
                             <div style="width:${pct}%;height:100%;background:${displayColor};border-radius:3px;transition:width 0.3s;"></div>
                         </div>
@@ -721,6 +723,14 @@ class EditorApp {
             body.innerHTML += `
                 <div class="config-group">
                     <div class="config-group-title">Range</div>
+                    <div class="config-field">
+                        <label for="cfg-units">Units</label>
+                        <input type="text" id="cfg-units" value="${this._esc(widget.config.units || '')}">
+                    </div>
+                    <div class="config-field">
+                        <label for="cfg-precision">Precision</label>
+                        <input type="number" id="cfg-precision" value="${widget.config.precision ?? ''}" min="0" max="10">
+                    </div>
                     <div class="config-field">
                         <label for="cfg-minValue">Min Value</label>
                         <input type="number" id="cfg-minValue" value="${widget.config.minValue ?? 0}" step="any">

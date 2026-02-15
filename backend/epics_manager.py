@@ -150,7 +150,7 @@ class EPICSManager:
         # Real-mode caproto state
         self._ctx = None  # caproto threading Context
         self._caproto_pvs: dict[str, Any] = {}  # name -> PV object
-        self._caproto_subs: dict[str, Any] = {}  # name -> subscription token
+        self._caproto_subs: dict[str, Any] = {}  # name -> (subscription, callback)
         self._loop: Optional[asyncio.AbstractEventLoop] = None
 
     # ── Lifecycle ────────────────────────────────────────────────────────
@@ -420,7 +420,10 @@ class EPICSManager:
 
             sub = pv_obj.subscribe(data_type='time')
             sub.add_callback(_monitor_callback)
-            self._caproto_subs[pv_name] = sub
+            # Store both the subscription AND the callback function;
+            # caproto holds only a weakref to the callback, so without
+            # a strong reference here it gets garbage-collected.
+            self._caproto_subs[pv_name] = (sub, _monitor_callback)
             logger.info("Subscribed to real PV: %s", pv_name)
 
         except Exception as exc:

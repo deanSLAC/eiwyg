@@ -29,5 +29,8 @@ Thumbs.db
 *.log
 nohup.out
 
+# Local test IOC
+run_test_ioc.py
+
 # Claude
 .claude/
