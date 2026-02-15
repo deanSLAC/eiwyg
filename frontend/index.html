@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EIWYG - EPICS Is What You Get</title>
+    <link rel="stylesheet" href="/static/css/landing.css">
+</head>
+<body>
+
+<!-- ── Navigation ───────────────────────────────────────────────────── -->
+<nav class="landing-nav">
+    <a href="/" class="landing-nav-logo">EIWYG</a>
+    <div class="landing-nav-links">
+        <a href="/editor" class="nav-btn-primary">New Dashboard</a>
+        <a href="/load">Load</a>
+        <a href="#features">Features</a>
+    </div>
+</nav>
+
+<main>
+
+    <!-- ── Hero Section ─────────────────────────────────────────────── -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title">EIWYG</h1>
+            <p class="hero-subtitle">EPICS Is What You Get</p>
+            <p class="hero-tagline">
+                Build beautiful, real-time control system dashboards
+                for your beamline &mdash; no coding required.
+            </p>
+            <div class="hero-actions">
+                <a href="/editor" class="btn-hero btn-hero-primary">Create New Dashboard</a>
+                <a href="/load" class="btn-hero btn-hero-secondary">Load Existing</a>
+            </div>
+        </div>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- ── Feature Cards ────────────────────────────────────────────── -->
+    <section id="features" class="landing-section fade-in">
+        <h2 class="section-title">Why EIWYG?</h2>
+        <div class="features-grid">
+
+            <div class="feature-card">
+                <div class="feature-card-icon" aria-hidden="true">&#9638;</div>
+                <h3 class="feature-card-title">Drag &amp; Drop Builder</h3>
+                <p class="feature-card-desc">
+                    Place widgets on a responsive grid with drag-and-drop.
+                    Resize and rearrange until your dashboard is perfect.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-card-icon" aria-hidden="true">&#9889;</div>
+                <h3 class="feature-card-title">Real-Time Updates</h3>
+                <p class="feature-card-desc">
+                    Connect to EPICS PVs and see live data updates via WebSocket.
+                    Monitor temperatures, pressures, motor positions, and more.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-card-icon" aria-hidden="true">&#10070;</div>
+                <h3 class="feature-card-title">AI-Powered</h3>
+                <p class="feature-card-desc">
+                    Describe the dashboard you need in plain English.
+                    Our AI assistant will generate it for you instantly.
+                </p>
+            </div>
+
+        </div>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- ── Example Dashboard Preview ────────────────────────────────── -->
+    <section class="landing-section fade-in">
+        <h2 class="section-title">See It In Action</h2>
+        <div class="preview-wrapper">
+            <div class="preview-frame">
+
+                <!-- Title bar -->
+                <div class="preview-titlebar">
+                    <div class="preview-titlebar-dots">
+                        <span class="preview-titlebar-dot red"></span>
+                        <span class="preview-titlebar-dot yellow"></span>
+                        <span class="preview-titlebar-dot green"></span>
+                    </div>
+                    <span class="preview-titlebar-text">BL 12.3.2 Endstation</span>
+                </div>
+
+                <!-- Mock widget grid -->
+                <div class="preview-grid">
+
+                    <!-- Temperature -->
+                    <div class="preview-widget">
+                        <span class="preview-widget-label">Temperature</span>
+                        <span class="preview-widget-value green value-live">25.3 &deg;C</span>
+                        <span class="preview-widget-pv">BL1232:TEMP:RBV</span>
+                    </div>
+
+                    <!-- Pressure -->
+                    <div class="preview-widget">
+                        <span class="preview-widget-label">Pressure</span>
+                        <span class="preview-widget-value green">2.4&times;10&#8315;&#8311; Torr</span>
+                        <span class="preview-widget-pv">BL1232:VAC:CC1</span>
+                    </div>
+
+                    <!-- Beam Intensity -->
+                    <div class="preview-widget">
+                        <span class="preview-widget-label">Beam Intensity</span>
+                        <span class="preview-widget-value blue value-live">1.23&times;10&#8309; counts</span>
+                        <span class="preview-widget-pv">BL1232:BEAM:CURR</span>
+                    </div>
+
+                    <!-- Shutter Status LED -->
+                    <div class="preview-widget">
+                        <span class="preview-widget-label">Shutter Status</span>
+                        <div class="preview-led">
+                            <span class="preview-led-bulb"></span>
+                            <span class="preview-led-text">Open</span>
+                        </div>
+                        <span class="preview-widget-pv">BL1232:SHUTTER:STS</span>
+                    </div>
+
+                    <!-- Motor Position (span 2 cols) -->
+                    <div class="preview-widget span-2">
+                        <span class="preview-widget-label">Motor Position</span>
+                        <span class="preview-widget-value">45.000 mm</span>
+                        <div class="preview-widget-status">
+                            <span class="preview-widget-status-dot"></span>
+                            Idle
+                        </div>
+                        <span class="preview-widget-pv">BL1232:MTR:SAMPLE_X</span>
+                    </div>
+
+                    <!-- Detector Counts (span 2 cols) -->
+                    <div class="preview-widget span-2">
+                        <span class="preview-widget-label">Detector Counts</span>
+                        <span class="preview-widget-value amber">156,234</span>
+                        <span class="preview-widget-pv">BL1232:DET:COUNTS</span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- ── Component Showcase ───────────────────────────────────────── -->
+    <section class="landing-section fade-in">
+        <h2 class="section-title">Component Types Available</h2>
+        <div class="showcase-grid">
+
+            <div class="showcase-card">
+                <div class="showcase-card-icon" aria-hidden="true">Aa</div>
+                <div class="showcase-card-name">Label</div>
+                <div class="showcase-card-desc">Static text and headings</div>
+            </div>
+
+            <div class="showcase-card">
+                <div class="showcase-card-icon" aria-hidden="true">Tx</div>
+                <div class="showcase-card-name">Text Display</div>
+                <div class="showcase-card-desc">Read-only PV text values</div>
+            </div>
+
+            <div class="showcase-card">
+                <div class="showcase-card-icon" aria-hidden="true">#</div>
+                <div class="showcase-card-name">Numeric Display</div>
+                <div class="showcase-card-desc">Formatted numeric readbacks</div>
+            </div>
+
+            <div class="showcase-card">
+                <div class="showcase-card-icon" aria-hidden="true">&#177;</div>
+                <div class="showcase-card-name">Numeric Input</div>
+                <div class="showcase-card-desc">Set values with +/- controls</div>
+            </div>
+
+            <div class="showcase-card">
+                <div class="showcase-card-icon" aria-hidden="true">&#9998;</div>
+                <div class="showcase-card-name">Text Input</div>
+                <div class="showcase-card-desc">Write string values to PVs</div>
+            </div>
+
+            <div class="showcase-card">
+                <div class="showcase-card-icon" aria-hidden="true">&#9644;</div>
+                <div class="showcase-card-name">Slider</div>
+                <div class="showcase-card-desc">Analog value control</div>
+            </div>
+
+            <div class="showcase-card">
+                <div class="showcase-card-icon" aria-hidden="true">&#8960;</div>
+                <div class="showcase-card-name">Toggle Switch</div>
+                <div class="showcase-card-desc">On/off binary control</div>
+            </div>
+
+            <div class="showcase-card">
+                <div class="showcase-card-icon" aria-hidden="true">&#9679;</div>
+                <div class="showcase-card-name">LED Indicator</div>
+                <div class="showcase-card-desc">Visual status indicators</div>
+            </div>
+
+            <div class="showcase-card">
+                <div class="showcase-card-icon" aria-hidden="true">&#9685;</div>
+                <div class="showcase-card-name">Gauge</div>
+                <div class="showcase-card-desc">Analog meter readback</div>
+            </div>
+
+            <div class="showcase-card">
+                <div class="showcase-card-icon" aria-hidden="true">&#9608;</div>
+                <div class="showcase-card-name">Progress Bar</div>
+                <div class="showcase-card-desc">Visual fill-level display</div>
+            </div>
+
+            <div class="showcase-card">
+                <div class="showcase-card-icon" aria-hidden="true">&#8644;</div>
+                <div class="showcase-card-name">Motor Control</div>
+                <div class="showcase-card-desc">Move and monitor motors</div>
+            </div>
+
+            <div class="showcase-card">
+                <div class="showcase-card-icon" aria-hidden="true">&#9776;</div>
+                <div class="showcase-card-name">Enum Selector</div>
+                <div class="showcase-card-desc">Dropdown for enum PVs</div>
+            </div>
+
+            <div class="showcase-card">
+                <div class="showcase-card-icon" aria-hidden="true">&#9635;</div>
+                <div class="showcase-card-name">Detector Display</div>
+                <div class="showcase-card-desc">Detector counts and status</div>
+            </div>
+
+        </div>
+    </section>
+
+</main>
+
+<!-- ── Footer ───────────────────────────────────────────────────────── -->
+<footer class="landing-footer">
+    <p class="landing-footer-text">
+        EIWYG &mdash; Built for beamline scientists and engineers
+    </p>
+    <nav class="landing-footer-links">
+        <a href="/">Home</a>
+        <a href="/editor">New Dashboard</a>
+        <a href="/load">Load Dashboard</a>
+    </nav>
+</footer>
+
+<!-- ── Scroll fade-in observer ──────────────────────────────────────── -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var targets = document.querySelectorAll('.fade-in');
+        if ('IntersectionObserver' in window) {
+            var observer = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.15 });
+            targets.forEach(function (el) { observer.observe(el); });
+        } else {
+            targets.forEach(function (el) { el.classList.add('visible'); });
+        }
+    });
+</script>
+
+</body>
+</html>

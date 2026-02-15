@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EIWYG - Load Dashboard</title>
+    <link rel="stylesheet" href="/static/css/load.css">
+</head>
+<body>
+
+<!-- ── Top Bar ─────────────────────────────────────────────────────── -->
+<div class="load-top-bar">
+    <a href="/" class="load-top-bar-logo">EIWYG</a>
+    <nav class="load-nav">
+        <a href="/">Home</a>
+        <a href="/editor">New Dashboard</a>
+        <a href="/load" class="active">Load</a>
+    </nav>
+</div>
+
+<!-- ── Main Content ───────────────────────────────────────────────── -->
+<div class="load-content">
+    <h1 class="load-title">Load Dashboard</h1>
+
+    <!-- Search Tabs -->
+    <div class="search-tabs">
+        <button class="search-tab active" data-tab="username">By Username</button>
+        <button class="search-tab" data-tab="description">By Description</button>
+    </div>
+
+    <!-- Username Search -->
+    <div id="tab-username" class="search-form">
+        <input type="text" id="search-username" class="search-input"
+               placeholder="Enter username...">
+        <button id="btn-search-username" class="search-btn">Search</button>
+    </div>
+
+    <!-- Description Search -->
+    <div id="tab-description" class="search-form" style="display:none;">
+        <input type="text" id="search-description" class="search-input"
+               placeholder="Describe the dashboard you're looking for...">
+        <button id="btn-search-description" class="search-btn">Search</button>
+    </div>
+
+    <!-- Results -->
+    <div class="results-area" id="results-area">
+        <div class="results-empty">Search for dashboards above</div>
+    </div>
+</div>
+
+<script src="/static/js/load.js"></script>
+</body>
+</html>

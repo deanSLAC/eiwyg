@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EIWYG - Editor</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridstack@10/dist/gridstack.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridstack@10/dist/gridstack-extra.min.css">
+    <link rel="stylesheet" href="/static/css/editor.css">
+    <link rel="stylesheet" href="/static/css/components.css">
+</head>
+<body>
+
+<!-- ── Top Bar ─────────────────────────────────────────────────────── -->
+<div class="top-bar">
+    <a href="/" class="top-bar-logo">EIWYG</a>
+    <div class="top-bar-fields">
+        <input type="text" id="dashboard-title" class="top-bar-field field-title" placeholder="Dashboard Title">
+        <input type="text" id="dashboard-username" class="top-bar-field field-username" placeholder="Username">
+        <input type="text" id="dashboard-description" class="top-bar-field field-description" placeholder="Description">
+        <input type="text" id="dashboard-slug" class="top-bar-field field-slug" placeholder="my-dashboard">
+        <span id="slug-error" class="slug-error"></span>
+    </div>
+    <div class="top-bar-actions">
+        <button id="btn-save" class="btn btn-primary">Save</button>
+        <button id="btn-freeze" class="btn btn-success">Freeze &amp; View</button>
+        <a href="/" class="btn">Back to Home</a>
+    </div>
+</div>
+
+<!-- ── Editor Layout ──────────────────────────────────────────────── -->
+<div class="editor-layout">
+    <div class="editor-main">
+
+        <!-- Component Palette -->
+        <div class="palette" id="palette">
+            <div class="palette-header">Components</div>
+            <!-- Palette items are rendered by JS -->
+        </div>
+
+        <!-- Grid Area -->
+        <div class="grid-container" id="grid-container">
+            <div class="grid-stack" id="grid"></div>
+        </div>
+
+        <!-- Config Panel -->
+        <div class="config-panel" id="config-panel">
+            <div class="config-panel-empty" id="config-empty">
+                Select a widget to configure
+            </div>
+            <div id="config-content" style="display:none;">
+                <div class="config-header">
+                    Widget Configuration
+                </div>
+                <div class="config-body" id="config-body">
+                    <!-- Config fields rendered by JS -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- AI Chatbot Panel -->
+    <div class="chatbot-panel" id="chatbot-panel" style="height: 200px;">
+        <div class="chatbot-header" id="chatbot-header">
+            <span class="chatbot-header-title">AI Assistant</span>
+            <span class="chatbot-toggle" id="chatbot-toggle">&#9660;</span>
+        </div>
+        <div class="chatbot-messages" id="chatbot-messages"></div>
+        <div class="chatbot-input-area">
+            <input type="text" id="chatbot-input" class="chatbot-input"
+                   placeholder="Describe the GUI you want to build...">
+            <button id="chatbot-send" class="btn btn-primary btn-sm">Send</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/gridstack@10/dist/gridstack-all.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<script src="/static/js/components.js"></script>
+<script src="/static/js/editor.js"></script>
+</body>
+</html>

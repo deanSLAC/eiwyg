@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EIWYG - Dashboard View</title>
+
+    <!-- Gridstack -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridstack@10/dist/gridstack.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridstack@10/dist/gridstack-extra.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/gridstack@10/dist/gridstack-all.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+    <!-- EIWYG styles -->
+    <link rel="stylesheet" href="/static/css/components.css">
+    <link rel="stylesheet" href="/static/css/view.css">
+</head>
+<body>
+    <!-- Top Bar -->
+    <header class="view-top-bar">
+        <a href="/" class="view-logo">EIWYG</a>
+        <span class="view-title" id="dashboard-title">Loading...</span>
+        <div class="view-actions">
+            <a id="edit-btn" href="#" class="btn btn-sm">Edit</a>
+            <a href="/" class="btn btn-sm">Home</a>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="view-main" id="view-main">
+        <!-- Loading state -->
+        <div class="view-loading" id="view-loading">
+            <div class="loading-spinner"></div>
+            <span>Loading dashboard...</span>
+        </div>
+
+        <!-- Error state (hidden by default) -->
+        <div class="view-error" id="view-error" style="display: none;">
+            <div class="view-error-icon">!</div>
+            <h2 class="view-error-title">Dashboard not found</h2>
+            <p class="view-error-message">The dashboard you are looking for does not exist or may have been removed.</p>
+            <a href="/" class="btn btn-primary">Go Home</a>
+        </div>
+
+        <!-- Grid container (hidden until loaded) -->
+        <div class="view-grid-wrapper" id="view-grid-wrapper" style="display: none;">
+            <div class="grid-stack" id="dashboard-grid"></div>
+        </div>
+    </main>
+
+    <!-- Status Bar -->
+    <footer class="view-status-bar">
+        <span class="view-status-updated" id="status-updated">Last updated: --</span>
+        <span class="view-status-connection" id="status-connection">
+            <span class="connection-dot disconnected" id="connection-dot"></span>
+            <span id="connection-text">Disconnected</span>
+        </span>
+    </footer>
+
+    <!-- EIWYG scripts -->
+    <script src="/static/js/components.js"></script>
+    <script src="/static/js/view.js"></script>
+</body>
+</html>

@@ -1,0 +1,659 @@
+/* ==========================================================================
+   EIWYG Component Styles
+   Dark-themed widget styling for synchrotron beamline control dashboards.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Base Widget
+   -------------------------------------------------------------------------- */
+
+.eiwyg-widget {
+    background-color: #1e293b;
+    color: #e2e8f0;
+    padding: 10px 12px;
+    overflow: hidden;
+    border-radius: 6px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+/* --------------------------------------------------------------------------
+   Shared Elements
+   -------------------------------------------------------------------------- */
+
+.eiwyg-widget-label {
+    color: #94a3b8;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.eiwyg-value {
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    color: #f8fafc;
+    font-weight: 600;
+}
+
+.eiwyg-units {
+    color: #94a3b8;
+    font-size: 12px;
+    margin-left: 4px;
+    white-space: nowrap;
+}
+
+.eiwyg-btn {
+    background-color: #334155;
+    color: #e2e8f0;
+    border: 1px solid #475569;
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+    white-space: nowrap;
+    font-family: inherit;
+}
+
+.eiwyg-btn:hover {
+    background-color: #475569;
+    border-color: #64748b;
+}
+
+.eiwyg-btn:active {
+    background-color: #1e293b;
+}
+
+.eiwyg-input {
+    background-color: #0f172a;
+    color: #e2e8f0;
+    border: 1px solid #334155;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.15s ease;
+}
+
+.eiwyg-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.eiwyg-select {
+    background-color: #0f172a;
+    color: #e2e8f0;
+    border: 1px solid #334155;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    cursor: pointer;
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 28px;
+}
+
+.eiwyg-select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* --------------------------------------------------------------------------
+   Severity indicators (alarm borders)
+   -------------------------------------------------------------------------- */
+
+.eiwyg-severity-minor {
+    border-left: 3px solid #eab308;
+}
+
+.eiwyg-severity-major {
+    border-left: 3px solid #ef4444;
+}
+
+.eiwyg-severity-invalid {
+    border-left: 3px solid #a855f7;
+    opacity: 0.7;
+}
+
+/* --------------------------------------------------------------------------
+   1. Label
+   -------------------------------------------------------------------------- */
+
+.eiwyg-label {
+    justify-content: center;
+    align-items: flex-start;
+    background-color: transparent;
+}
+
+.eiwyg-label-text {
+    font-weight: 600;
+    line-height: 1.3;
+    word-wrap: break-word;
+}
+
+/* --------------------------------------------------------------------------
+   2. Text Display
+   -------------------------------------------------------------------------- */
+
+.eiwyg-text-display {
+    justify-content: center;
+}
+
+.eiwyg-text-display .eiwyg-value {
+    font-size: 24px;
+    line-height: 1.2;
+    word-break: break-all;
+}
+
+/* --------------------------------------------------------------------------
+   3. Numeric Display
+   -------------------------------------------------------------------------- */
+
+.eiwyg-numeric-display {
+    justify-content: center;
+}
+
+.eiwyg-numeric-row {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+}
+
+.eiwyg-numeric-value {
+    font-size: 28px;
+    line-height: 1.2;
+}
+
+.eiwyg-numeric-row .eiwyg-units {
+    font-size: 14px;
+}
+
+/* --------------------------------------------------------------------------
+   4. Numeric Input
+   -------------------------------------------------------------------------- */
+
+.eiwyg-numeric-input {
+    justify-content: center;
+}
+
+.eiwyg-numeric-input-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.eiwyg-btn-minus,
+.eiwyg-btn-plus {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    font-size: 18px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.eiwyg-numeric-input-field {
+    flex: 1;
+    text-align: center;
+    min-width: 0;
+    height: 32px;
+}
+
+.eiwyg-numeric-input-row .eiwyg-units {
+    flex-shrink: 0;
+}
+
+/* --------------------------------------------------------------------------
+   5. Text Input
+   -------------------------------------------------------------------------- */
+
+.eiwyg-text-input {
+    justify-content: center;
+}
+
+.eiwyg-text-input-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.eiwyg-text-input-field {
+    flex: 1;
+    min-width: 0;
+    height: 32px;
+}
+
+.eiwyg-btn-set {
+    flex-shrink: 0;
+    height: 32px;
+    font-weight: 600;
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+    color: #fff;
+}
+
+.eiwyg-btn-set:hover {
+    background-color: #2563eb;
+    border-color: #2563eb;
+}
+
+/* --------------------------------------------------------------------------
+   6. Slider
+   -------------------------------------------------------------------------- */
+
+.eiwyg-slider {
+    justify-content: center;
+}
+
+.eiwyg-slider-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.eiwyg-slider-input {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    border-radius: 3px;
+    background: #334155;
+    outline: none;
+    cursor: pointer;
+    min-width: 0;
+}
+
+.eiwyg-slider-input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #3b82f6;
+    cursor: pointer;
+    border: 2px solid #1e293b;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+}
+
+.eiwyg-slider-input::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #3b82f6;
+    cursor: pointer;
+    border: 2px solid #1e293b;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+}
+
+.eiwyg-slider-input::-moz-range-track {
+    height: 6px;
+    border-radius: 3px;
+    background: #334155;
+}
+
+.eiwyg-slider-value {
+    min-width: 48px;
+    text-align: right;
+    font-size: 14px;
+}
+
+/* --------------------------------------------------------------------------
+   7. Toggle
+   -------------------------------------------------------------------------- */
+
+.eiwyg-toggle {
+    justify-content: center;
+}
+
+.eiwyg-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.eiwyg-toggle-label {
+    margin-bottom: 0;
+    font-size: 14px;
+    color: #e2e8f0;
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+.eiwyg-toggle-switch {
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.eiwyg-toggle-track {
+    width: 48px;
+    height: 26px;
+    border-radius: 13px;
+    position: relative;
+    transition: background-color 0.2s ease;
+}
+
+.eiwyg-toggle-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: #f8fafc;
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    transition: transform 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.eiwyg-toggle-on .eiwyg-toggle-thumb {
+    transform: translateX(22px);
+}
+
+/* --------------------------------------------------------------------------
+   8. LED
+   -------------------------------------------------------------------------- */
+
+.eiwyg-led {
+    justify-content: center;
+    align-items: center;
+}
+
+.eiwyg-led-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.eiwyg-led-indicator {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: background-color 0.2s ease, box-shadow 0.3s ease;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.eiwyg-led-on {
+    /* glow applied via inline style in JS */
+}
+
+.eiwyg-led-label {
+    color: #e2e8f0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* --------------------------------------------------------------------------
+   9. Gauge
+   -------------------------------------------------------------------------- */
+
+.eiwyg-gauge {
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.eiwyg-gauge-container {
+    width: 100%;
+    max-width: 220px;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+}
+
+.eiwyg-gauge-svg {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+}
+
+.eiwyg-gauge-value-text {
+    fill: #f8fafc;
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    font-weight: 600;
+}
+
+.eiwyg-gauge-units-text {
+    fill: #94a3b8;
+}
+
+.eiwyg-gauge-minmax-text {
+    fill: #64748b;
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+}
+
+/* --------------------------------------------------------------------------
+   10. Progress Bar
+   -------------------------------------------------------------------------- */
+
+.eiwyg-progress-bar {
+    justify-content: center;
+}
+
+.eiwyg-progress-track {
+    width: 100%;
+    height: 14px;
+    background-color: #0f172a;
+    border-radius: 7px;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+.eiwyg-progress-fill {
+    height: 100%;
+    border-radius: 7px;
+    background-color: #3b82f6;
+    transition: width 0.3s ease, background-color 0.3s ease;
+    min-width: 0;
+}
+
+.eiwyg-progress-info {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+}
+
+.eiwyg-progress-info .eiwyg-value {
+    font-size: 16px;
+}
+
+/* --------------------------------------------------------------------------
+   11. Motor Control
+   -------------------------------------------------------------------------- */
+
+.eiwyg-motor-control {
+    justify-content: flex-start;
+    gap: 6px;
+}
+
+.eiwyg-motor-header {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.eiwyg-motor-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.eiwyg-motor-label {
+    color: #94a3b8;
+    font-size: 12px;
+    min-width: 64px;
+    flex-shrink: 0;
+}
+
+.eiwyg-motor-readback {
+    font-size: 18px;
+}
+
+.eiwyg-motor-setpoint-input {
+    flex: 1;
+    min-width: 0;
+    height: 28px;
+    font-size: 13px;
+}
+
+.eiwyg-btn-go {
+    flex-shrink: 0;
+    height: 28px;
+    font-weight: 600;
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+    color: #fff;
+    padding: 4px 12px;
+}
+
+.eiwyg-btn-go:hover {
+    background-color: #2563eb;
+    border-color: #2563eb;
+}
+
+.eiwyg-motor-jog-row {
+    justify-content: center;
+    gap: 6px;
+    margin-top: 2px;
+}
+
+.eiwyg-btn-jog {
+    font-size: 12px;
+    padding: 4px 8px;
+}
+
+.eiwyg-btn-stop {
+    background-color: #ef4444;
+    border-color: #ef4444;
+    color: #fff;
+    font-weight: 700;
+    font-size: 12px;
+    padding: 4px 12px;
+    letter-spacing: 0.05em;
+}
+
+.eiwyg-btn-stop:hover {
+    background-color: #dc2626;
+    border-color: #dc2626;
+}
+
+.eiwyg-btn-stop:active {
+    background-color: #b91c1c;
+}
+
+.eiwyg-motor-status-row {
+    margin-top: 2px;
+}
+
+.eiwyg-motor-status-dot {
+    font-size: 14px;
+    color: #64748b;
+    transition: color 0.2s ease;
+}
+
+.eiwyg-motor-status-text {
+    font-size: 12px;
+    color: #94a3b8;
+    transition: color 0.2s ease;
+}
+
+/* --------------------------------------------------------------------------
+   12. Enum Selector
+   -------------------------------------------------------------------------- */
+
+.eiwyg-enum-selector {
+    justify-content: center;
+}
+
+.eiwyg-enum-selector .eiwyg-select {
+    margin-top: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   13. Detector Display
+   -------------------------------------------------------------------------- */
+
+.eiwyg-detector-display {
+    justify-content: flex-start;
+    gap: 6px;
+}
+
+.eiwyg-detector-header {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.eiwyg-detector-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.eiwyg-detector-label {
+    color: #94a3b8;
+    font-size: 12px;
+    min-width: 54px;
+    flex-shrink: 0;
+}
+
+.eiwyg-detector-counts {
+    font-size: 24px;
+}
+
+.eiwyg-detector-rate {
+    font-size: 18px;
+}
+
+/* --------------------------------------------------------------------------
+   Plot
+   -------------------------------------------------------------------------- */
+
+.eiwyg-plot {
+    padding: 8px 10px;
+}
+
+.eiwyg-plot .eiwyg-widget-label {
+    margin-bottom: 4px;
+    flex-shrink: 0;
+}
+
+.eiwyg-plot-wrap {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+}
+
+.eiwyg-plot-wrap canvas {
+    width: 100% !important;
+    height: 100% !important;
+}

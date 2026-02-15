@@ -1,0 +1,408 @@
+/* ── EIWYG View Page - Dark Theme ──────────────────────────────────── */
+
+:root {
+    --bg-darkest: #0f172a;
+    --bg-dark: #1e293b;
+    --bg-medium: #283548;
+    --border: #334155;
+    --border-light: #475569;
+    --text-primary: #e2e8f0;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --accent: #3b82f6;
+    --accent-hover: #2563eb;
+    --accent-glow: rgba(59, 130, 246, 0.4);
+    --success: #22c55e;
+    --warning: #eab308;
+    --danger: #ef4444;
+    --font-sans: system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    font-family: var(--font-sans);
+    background: var(--bg-darkest);
+    color: var(--text-primary);
+    overflow: hidden;
+}
+
+/* ── Top Bar ──────────────────────────────────────────────────────── */
+
+.view-top-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 8px 20px;
+    background: rgba(30, 41, 59, 0.85);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+    height: 48px;
+    flex-shrink: 0;
+    z-index: 100;
+    position: relative;
+}
+
+.view-logo {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent);
+    text-decoration: none;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.view-logo:hover {
+    color: var(--accent-hover);
+}
+
+.view-title {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+.view-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────── */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-medium);
+    color: var(--text-primary);
+    font-size: 13px;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    text-decoration: none;
+}
+
+.btn:hover {
+    background: var(--border);
+}
+
+.btn-sm {
+    padding: 4px 10px;
+    font-size: 12px;
+}
+
+.btn-primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background: var(--accent-hover);
+}
+
+/* ── Main Content Area ────────────────────────────────────────────── */
+
+.view-main {
+    flex: 1;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 48px - 32px); /* top bar + status bar */
+}
+
+/* ── Loading State ────────────────────────────────────────────────── */
+
+.view-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    height: 100%;
+    color: var(--text-muted);
+    font-size: 15px;
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ── Error State ──────────────────────────────────────────────────── */
+
+.view-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 16px;
+    padding: 40px;
+    text-align: center;
+}
+
+.view-error-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgba(239, 68, 68, 0.15);
+    border: 2px solid var(--danger);
+    color: var(--danger);
+    font-size: 32px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.view-error-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.view-error-message {
+    font-size: 14px;
+    color: var(--text-secondary);
+    max-width: 400px;
+    line-height: 1.5;
+}
+
+/* ── Grid Wrapper ─────────────────────────────────────────────────── */
+
+.view-grid-wrapper {
+    flex: 1;
+    overflow: auto;
+    padding: 16px;
+}
+
+.view-grid-wrapper .grid-stack {
+    max-width: 1400px;
+    margin: 0 auto;
+    min-height: 400px;
+}
+
+/* ── Gridstack Widget Styling (View Mode) ─────────────────────────── */
+
+.grid-stack > .grid-stack-item > .grid-stack-item-content {
+    inset: 4px;
+}
+
+.grid-stack-item-content {
+    background: var(--bg-dark);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    /* No pointer cursor in view mode for non-interactive widgets */
+    cursor: default;
+    transition: border-color 0.15s;
+}
+
+/* No resize handles in static mode */
+.grid-stack-item > .ui-resizable-handle {
+    display: none !important;
+}
+
+/* No drag cursor */
+.grid-stack.grid-stack-static > .grid-stack-item {
+    cursor: default !important;
+}
+
+/* Widget inner content */
+.widget-inner {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 8px 10px;
+    position: relative;
+}
+
+.widget-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.widget-value {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    color: var(--text-primary);
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.widget-pv {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+}
+
+/* ── PV Update Flash Animation ────────────────────────────────────── */
+
+@keyframes pv-flash {
+    0% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 8px 2px rgba(59, 130, 246, 0.3);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+    }
+}
+
+.widget-pv-flash > .grid-stack-item-content {
+    animation: pv-flash 0.4s ease-out;
+}
+
+/* ── Status Bar ───────────────────────────────────────────────────── */
+
+.view-status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 20px;
+    background: rgba(30, 41, 59, 0.75);
+    backdrop-filter: blur(8px);
+    border-top: 1px solid var(--border);
+    height: 32px;
+    flex-shrink: 0;
+    font-size: 12px;
+    color: var(--text-muted);
+    z-index: 100;
+    position: relative;
+}
+
+.view-status-updated {
+    font-family: var(--font-mono);
+    font-size: 11px;
+}
+
+.view-status-connection {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+}
+
+.connection-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+    transition: background-color 0.3s;
+}
+
+.connection-dot.connected {
+    background-color: var(--success);
+    box-shadow: 0 0 4px rgba(34, 197, 94, 0.5);
+}
+
+.connection-dot.disconnected {
+    background-color: var(--danger);
+    box-shadow: 0 0 4px rgba(239, 68, 68, 0.5);
+}
+
+.connection-dot.reconnecting {
+    background-color: var(--warning);
+    box-shadow: 0 0 4px rgba(234, 179, 8, 0.5);
+    animation: pulse-dot 1s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+/* ── Scrollbar ────────────────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-darkest);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--border-light);
+}
+
+/* ── Responsive ───────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+    .view-top-bar {
+        padding: 8px 12px;
+        gap: 10px;
+    }
+
+    .view-logo {
+        font-size: 16px;
+    }
+
+    .view-title {
+        font-size: 13px;
+    }
+
+    .view-grid-wrapper {
+        padding: 8px;
+    }
+
+    .view-status-bar {
+        padding: 6px 12px;
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 480px) {
+    .view-actions {
+        gap: 4px;
+    }
+
+    .btn-sm {
+        padding: 3px 8px;
+        font-size: 11px;
+    }
+}
