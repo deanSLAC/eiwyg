@@ -13,6 +13,7 @@ build/
 # Environment
 .env
 .env.*
+!.env.example
 
 # OS
 .DS_Store
@@ -31,6 +32,9 @@ nohup.out
 
 # Local test IOC
 run_test_ioc.py
+
+# Kubernetes secrets (use kubectl create secret instead)
+k8s/secret.yaml
 
 # Claude
 .claude/

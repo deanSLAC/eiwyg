@@ -22,6 +22,17 @@ spec:
           env:
             - name: EIWYG_SIM_MODE
               value: "true"
+            - name: STANFORD_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: eiwyg-secrets
+                  key: STANFORD_API_KEY
+            - name: STANFORD_MODEL
+              valueFrom:
+                configMapKeyRef:
+                  name: eiwyg-config
+                  key: STANFORD_MODEL
+                  optional: true
           resources:
             requests:
               cpu: 100m

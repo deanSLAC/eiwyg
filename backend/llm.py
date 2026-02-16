@@ -1,7 +1,15 @@
-"""LLM chatbot for dashboard generation and search."""
+"""LLM chatbot for dashboard generation and search via Stanford AI API Gateway."""
 import os
 import json
-from anthropic import AsyncAnthropic
+import re
+
+import httpx
+from dotenv import load_dotenv
+
+load_dotenv()
+
+API_BASE_URL = "https://aiapi-prod.stanford.edu/v1"
+DEFAULT_MODEL = "claude-4-sonnet"
 
 COMPONENT_TYPES = """
 Available component types:
@@ -72,52 +80,73 @@ If the user asks a question rather than requesting a dashboard, just respond wit
 Always return valid JSON with "reply" and "suggested_config" keys."""
 
 
+def _get_api_key() -> str | None:
+    return os.environ.get("STANFORD_API_KEY", "") or None
+
+
+def _get_model() -> str:
+    return os.environ.get("STANFORD_MODEL", DEFAULT_MODEL)
+
+
+def _get_headers(api_key: str) -> dict:
+    return {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+
+
+def _parse_json_response(text: str) -> dict:
+    """Try to parse JSON from LLM response text, handling markdown code blocks."""
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', text, re.DOTALL)
+        if match:
+            return json.loads(match.group(1))
+        return {"reply": text, "suggested_config": None}
+
+
 async def chat_generate(message: str, current_config: dict | None = None) -> dict:
     """Generate or modify a dashboard via LLM."""
-    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    api_key = _get_api_key()
     if not api_key:
         return {
-            "reply": "No ANTHROPIC_API_KEY environment variable set. Please set it to use the AI assistant.",
-            "suggested_config": None
+            "reply": "No STANFORD_API_KEY environment variable set. Please set it to use the AI assistant.",
+            "suggested_config": None,
         }
-
-    client = AsyncAnthropic(api_key=api_key)
 
     user_msg = message
     if current_config:
         user_msg += f"\n\nCurrent dashboard config:\n{json.dumps(current_config, indent=2)}"
 
+    payload = {
+        "model": _get_model(),
+        "messages": [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": user_msg},
+        ],
+    }
+
     try:
-        response = await client.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=4096,
-            system=SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": user_msg}]
-        )
-        text = response.content[0].text
-        # Try to parse JSON from the response
-        try:
-            result = json.loads(text)
-            return result
-        except json.JSONDecodeError:
-            # Try to extract JSON from markdown code blocks
-            import re
-            match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', text, re.DOTALL)
-            if match:
-                result = json.loads(match.group(1))
-                return result
-            return {"reply": text, "suggested_config": None}
+        async with httpx.AsyncClient(timeout=60) as client:
+            resp = await client.post(
+                f"{API_BASE_URL}/chat/completions",
+                headers=_get_headers(api_key),
+                json=payload,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            text = data["choices"][0]["message"]["content"]
+            return _parse_json_response(text)
     except Exception as e:
         return {"reply": f"Error communicating with AI: {str(e)}", "suggested_config": None}
 
 
 async def search_dashboards(query: str, dashboards: list[dict]) -> list[str]:
     """Use LLM to find dashboards matching a description."""
-    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    api_key = _get_api_key()
     if not api_key:
         return []
-
-    client = AsyncAnthropic(api_key=api_key)
 
     summaries = []
     for d in dashboards:
@@ -129,7 +158,7 @@ async def search_dashboards(query: str, dashboards: list[dict]) -> list[str]:
             "description": d["description"],
             "username": d["username"],
             "widget_types": widget_types,
-            "pvs": pvs[:10]
+            "pvs": pvs[:10],
         })
 
     prompt = f"""Given this user search query: "{query}"
@@ -140,20 +169,27 @@ And these available dashboards:
 Return a JSON array of slug strings for dashboards that best match the query, ordered by relevance.
 Only return the JSON array, nothing else."""
 
+    payload = {
+        "model": _get_model(),
+        "messages": [{"role": "user", "content": prompt}],
+    }
+
     try:
-        response = await client.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=1024,
-            messages=[{"role": "user", "content": prompt}]
-        )
-        text = response.content[0].text
-        try:
-            return json.loads(text)
-        except json.JSONDecodeError:
-            import re
-            match = re.search(r'\[.*?\]', text, re.DOTALL)
-            if match:
-                return json.loads(match.group(0))
-            return []
+        async with httpx.AsyncClient(timeout=60) as client:
+            resp = await client.post(
+                f"{API_BASE_URL}/chat/completions",
+                headers=_get_headers(api_key),
+                json=payload,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            text = data["choices"][0]["message"]["content"]
+            try:
+                return json.loads(text)
+            except json.JSONDecodeError:
+                match = re.search(r'\[.*?\]', text, re.DOTALL)
+                if match:
+                    return json.loads(match.group(0))
+                return []
     except Exception:
         return []

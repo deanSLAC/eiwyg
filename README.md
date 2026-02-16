@@ -12,15 +12,25 @@ A web-based WYSIWYG editor for building EPICS control system GUIs, targeting syn
 - **Real EPICS mode** via caproto -- connect to live IOCs by setting `EIWYG_SIM_MODE=false`
 - **Save/load dashboards** with usernames, descriptions, and custom URL slugs
 - **Frozen view mode** -- publish a dashboard to a unique URL for read-only monitoring
-- **AI chatbot** (optional) -- generate dashboard layouts from natural language using Claude
+- **AI chatbot** (optional) -- generate dashboard layouts from natural language via Stanford AI API Gateway
 
 ## Tech Stack
 
 - **Backend:** Python, FastAPI, WebSocket, SQLite (aiosqlite), caproto
 - **Frontend:** Vanilla JS, Gridstack.js 10, Chart.js 4 (all via CDN, no build step)
-- **LLM:** Anthropic API (optional, requires `ANTHROPIC_API_KEY`)
+- **LLM:** Stanford AI API Gateway (optional, requires `STANFORD_API_KEY`)
 
-## Quick Start
+## Environment Variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `STANFORD_API_KEY` | *(none)* | Stanford Playground API key for the AI assistant |
+| `STANFORD_MODEL` | `claude-4-sonnet` | LLM model to use via the Stanford gateway |
+| `EIWYG_SIM_MODE` | `true` | Set to `false` to connect to real EPICS IOCs |
+| `EIWYG_HOST` | `0.0.0.0` | Server bind address (used by run.sh) |
+| `EIWYG_PORT` | `8080` | Server port (used by run.sh) |
+
+## Local Development
 
 ```bash
 # Create and activate virtual environment
@@ -30,6 +40,10 @@ source venv/bin/activate
 # Install dependencies
 pip install -r requirements.txt
 
+# Configure your API key
+cp .env.example .env
+# Edit .env and add your STANFORD_API_KEY
+
 # Run the server (simulated EPICS mode, no real IOC needed)
 uvicorn backend.main:app --host 0.0.0.0 --port 8080
 
@@ -37,12 +51,69 @@ uvicorn backend.main:app --host 0.0.0.0 --port 8080
 open http://localhost:8080
 ```
 
-## Environment Variables
+The `.env` file is gitignored and will not be committed.
 
-| Variable | Default | Description |
-|---|---|---|
-| `EIWYG_SIM_MODE` | `true` | Set to `false` to connect to real EPICS IOCs via Channel Access |
-| `ANTHROPIC_API_KEY` | *(none)* | Anthropic API key for the AI chatbot feature |
+## Deployment
+
+### Docker
+
+Build the image:
+
+```bash
+docker build -t eiwyg .
+```
+
+Run with the API key passed as an environment variable (never bake it into the image):
+
+```bash
+# Pass key directly
+docker run -e STANFORD_API_KEY=your_key_here -p 8080:8080 eiwyg
+
+# Or use an env file
+docker run --env-file .env -p 8080:8080 eiwyg
+```
+
+Override additional settings as needed:
+
+```bash
+docker run \
+  -e STANFORD_API_KEY=your_key_here \
+  -e STANFORD_MODEL=claude-4-sonnet \
+  -e EIWYG_SIM_MODE=false \
+  -p 8080:8080 \
+  eiwyg
+```
+
+The `.env` file is excluded from the Docker image via `.dockerignore`.
+
+### Kubernetes
+
+The `k8s/` directory contains deployment manifests.
+
+**1. Create the secret** (do this directly in the cluster -- do not commit real keys):
+
+```bash
+kubectl create secret generic eiwyg-secrets \
+  --from-literal=STANFORD_API_KEY=your_key_here
+```
+
+**2. Apply the configmap** (optional, to override the default model):
+
+```bash
+kubectl apply -f k8s/configmap.yaml
+```
+
+**3. Deploy:**
+
+```bash
+kubectl apply -f k8s/deployment.yaml
+kubectl apply -f k8s/service.yaml
+kubectl apply -f k8s/ingress.yaml
+```
+
+The deployment references `STANFORD_API_KEY` from the `eiwyg-secrets` Secret and `STANFORD_MODEL` from the `eiwyg-config` ConfigMap (optional).
+
+**Note:** `k8s/secret.yaml` is a reference template and is gitignored. Always create secrets via `kubectl create secret` rather than committing them to the repo.
 
 ## Project Structure
 
@@ -54,7 +125,7 @@ backend/
   pv_cache.py        # Time-series PV value cache with compaction
   database.py        # SQLite database layer
   models.py          # Pydantic models
-  llm.py             # Anthropic API integration
+  llm.py             # Stanford AI API Gateway integration
   test_ioc.py        # Standalone caproto test IOC
 
 frontend/
@@ -73,6 +144,13 @@ frontend/
     view.css         # View styles
     landing.css      # Landing page styles
     load.css         # Load page styles
+
+k8s/
+  deployment.yaml    # Kubernetes Deployment
+  service.yaml       # Kubernetes Service
+  ingress.yaml       # Kubernetes Ingress
+  configmap.yaml     # Non-secret configuration
+  secret.yaml        # Secret template (gitignored)
 ```
 
 ## Running the Test IOC
