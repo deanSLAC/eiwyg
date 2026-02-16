@@ -1,0 +1,15 @@
+venv/
+__pycache__/
+*.pyc
+*.db
+.env
+.env.*
+.DS_Store
+.git/
+.gitignore
+.claude/
+*.log
+nohup.out
+run_test_ioc.py
+k8s/
+README.md

@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eiwyg
+  labels:
+    app: eiwyg
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eiwyg
+  template:
+    metadata:
+      labels:
+        app: eiwyg
+    spec:
+      containers:
+        - name: eiwyg
+          image: eiwyg:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: EIWYG_SIM_MODE
+              value: "true"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 30
