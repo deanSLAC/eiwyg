@@ -1,8 +1,7 @@
 """Database layer for EIWYG. Uses PostgreSQL when PG env vars are set, SQLite otherwise.
 
-In production (EIWYG_BASE_PATH is set), PostgreSQL is REQUIRED. The app will
-refuse to start if PG credentials are missing, to prevent silent data loss
-from falling back to ephemeral SQLite inside a container.
+Set EIWYG_ENV=production to require PostgreSQL and prevent silent fallback
+to ephemeral SQLite inside a container.
 """
 import json
 import os
@@ -11,23 +10,20 @@ from datetime import datetime, timezone
 
 # ── Backend detection ────────────────────────────────────────────────────
 
+_EIWYG_ENV = os.environ.get("EIWYG_ENV", "dev").lower()
 _PGHOST = os.environ.get("PGHOST")
 _PGPORT = os.environ.get("PGPORT", "5432")
 _PGUSER = os.environ.get("PGUSER")
 _PGPASSWORD = os.environ.get("PGPASSWORD")
 _PGDATABASE = os.environ.get("PGDATABASE", "eiwyg")
 _DATABASE_URL = os.environ.get("DATABASE_URL")
-_BASE_PATH = os.environ.get("EIWYG_BASE_PATH", "")
 
 USE_POSTGRES = bool(_DATABASE_URL or _PGHOST)
 
-# If we're in a deployed environment (base path set) but have no PG config,
-# fail loudly instead of silently falling back to SQLite.
-if _BASE_PATH and not USE_POSTGRES:
+if _EIWYG_ENV == "production" and not USE_POSTGRES:
     print(
-        "FATAL: EIWYG_BASE_PATH is set (production mode) but no PostgreSQL "
-        "credentials found. Set DATABASE_URL or PGHOST/PGUSER/PGPASSWORD "
-        "env vars, or unset EIWYG_BASE_PATH to use SQLite for local dev.",
+        "FATAL: EIWYG_ENV=production but no PostgreSQL credentials found. "
+        "Set DATABASE_URL or PGHOST/PGUSER/PGPASSWORD env vars.",
         file=sys.stderr,
     )
     sys.exit(1)
