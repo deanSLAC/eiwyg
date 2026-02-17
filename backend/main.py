@@ -3,9 +3,9 @@ import json
 import os
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request, HTTPException
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request, HTTPException, APIRouter
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 
 from backend.database import init_db, save_dashboard, get_dashboard, list_dashboards, get_all_dashboards_with_config
 from backend.models import DashboardCreate, DashboardResponse, ChatRequest, ChatResponse
@@ -14,6 +14,7 @@ from backend.ws_manager import ConnectionManager
 from backend.llm import chat_generate, search_dashboards
 
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend")
+BASE_PATH = os.environ.get("EIWYG_BASE_PATH", "").rstrip("/")
 
 epics_mgr = EPICSManager()
 ws_mgr = ConnectionManager(epics_mgr)
@@ -28,41 +29,68 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="EIWYG - EPICS Is What You Get", lifespan=lifespan)
+router = APIRouter()
 
 # Serve static frontend files
-app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+app.mount(f"{BASE_PATH}/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+
+
+def _serve_html(filename: str) -> HTMLResponse:
+    """Read an HTML file and inject the base path configuration."""
+    path = os.path.join(FRONTEND_DIR, filename)
+    with open(path, "r") as f:
+        content = f.read()
+    # Inject EIWYG_BASE into <head> so frontend JS can use it
+    base_script = f'<script>window.EIWYG_BASE="{BASE_PATH}";</script>'
+    content = content.replace("<head>", f"<head>\n    {base_script}", 1)
+    if BASE_PATH:
+        # Prefix absolute static references
+        content = content.replace('href="/static/', f'href="{BASE_PATH}/static/')
+        content = content.replace('src="/static/', f'src="{BASE_PATH}/static/')
+        # Prefix absolute navigation links
+        content = content.replace('href="/"', f'href="{BASE_PATH}/"')
+        content = content.replace('href="/editor"', f'href="{BASE_PATH}/editor"')
+        content = content.replace('href="/load"', f'href="{BASE_PATH}/load"')
+    return HTMLResponse(content)
+
+
+# ── Health Check ─────────────────────────────────────────────────────────
+
+@router.get("/health")
+async def health_check():
+    return {"status": "ok"}
 
 
 # ── Page Routes ──────────────────────────────────────────────────────────
 
-@app.get("/", response_class=HTMLResponse)
+@router.get("/", response_class=HTMLResponse)
 async def landing_page():
-    return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
+    return _serve_html("index.html")
 
 
-@app.get("/editor", response_class=HTMLResponse)
+@router.get("/editor", response_class=HTMLResponse)
 async def editor_page():
-    return FileResponse(os.path.join(FRONTEND_DIR, "editor.html"))
+    return _serve_html("editor.html")
 
 
-@app.get("/editor/{slug}", response_class=HTMLResponse)
+@router.get("/editor/{slug}", response_class=HTMLResponse)
 async def editor_page_edit(slug: str):
-    return FileResponse(os.path.join(FRONTEND_DIR, "editor.html"))
+    return _serve_html("editor.html")
 
 
-@app.get("/view/{slug}", response_class=HTMLResponse)
+@router.get("/view/{slug}", response_class=HTMLResponse)
 async def view_page(slug: str):
-    return FileResponse(os.path.join(FRONTEND_DIR, "view.html"))
+    return _serve_html("view.html")
 
 
-@app.get("/load", response_class=HTMLResponse)
+@router.get("/load", response_class=HTMLResponse)
 async def load_page():
-    return FileResponse(os.path.join(FRONTEND_DIR, "load.html"))
+    return _serve_html("load.html")
 
 
 # ── REST API ─────────────────────────────────────────────────────────────
 
-@app.post("/api/dashboards")
+@router.post("/api/dashboards")
 async def api_save_dashboard(dashboard: DashboardCreate):
     result = await save_dashboard(
         slug=dashboard.slug,
@@ -74,12 +102,12 @@ async def api_save_dashboard(dashboard: DashboardCreate):
     return result
 
 
-@app.get("/api/dashboards")
+@router.get("/api/dashboards")
 async def api_list_dashboards(username: str = None):
     return await list_dashboards(username=username)
 
 
-@app.get("/api/dashboards/{slug}")
+@router.get("/api/dashboards/{slug}")
 async def api_get_dashboard(slug: str):
     result = await get_dashboard(slug)
     if not result:
@@ -89,7 +117,7 @@ async def api_get_dashboard(slug: str):
 
 # ── PV History ──────────────────────────────────────────────────────────
 
-@app.get("/api/pv-history/{pv_name:path}")
+@router.get("/api/pv-history/{pv_name:path}")
 async def api_pv_history(pv_name: str, window: float = 3600, max_points: int = 1000):
     """Get cached time-series history for a PV.
 
@@ -106,7 +134,7 @@ async def api_pv_history(pv_name: str, window: float = 3600, max_points: int = 1
 
 # ── WebSocket ────────────────────────────────────────────────────────────
 
-@app.websocket("/ws")
+@router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await ws_mgr.connect(websocket)
     try:
@@ -139,14 +167,14 @@ async def websocket_endpoint(websocket: WebSocket):
 
 # ── LLM Chat ────────────────────────────────────────────────────────────
 
-@app.post("/api/chat")
+@router.post("/api/chat")
 async def api_chat(req: ChatRequest):
     current = req.current_config.model_dump() if req.current_config else None
     result = await chat_generate(req.message, current)
     return result
 
 
-@app.post("/api/search-dashboards")
+@router.post("/api/search-dashboards")
 async def api_search_dashboards(request: Request):
     body = await request.json()
     query = body.get("query", "")
@@ -167,3 +195,6 @@ async def api_search_dashboards(request: Request):
                 })
                 break
     return result
+
+
+app.include_router(router, prefix=BASE_PATH)

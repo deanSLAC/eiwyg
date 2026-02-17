@@ -42,7 +42,7 @@ class DashboardViewer {
         // Set the Edit button href now that we have the slug
         const editBtn = document.getElementById('edit-btn');
         if (editBtn) {
-            editBtn.href = `/editor/${encodeURIComponent(this.slug)}`;
+            editBtn.href = `${window.EIWYG_BASE || ''}/editor/${encodeURIComponent(this.slug)}`;
         }
 
         // Wait for components.js to register EIWYG_COMPONENTS
@@ -100,7 +100,7 @@ class DashboardViewer {
      */
     async loadDashboard() {
         try {
-            const resp = await fetch(`/api/dashboards/${encodeURIComponent(this.slug)}`);
+            const resp = await fetch(`${window.EIWYG_BASE || ''}/api/dashboards/${encodeURIComponent(this.slug)}`);
 
             if (resp.status === 404) {
                 this._showError('Dashboard not found',
@@ -256,7 +256,7 @@ class DashboardViewer {
         }
 
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${protocol}//${window.location.host}/ws`;
+        const wsUrl = `${protocol}//${window.location.host}${window.EIWYG_BASE || ''}/ws`;
 
         this._setConnectionStatus('reconnecting', 'Connecting...');
 

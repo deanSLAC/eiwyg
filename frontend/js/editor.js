@@ -61,7 +61,10 @@ class EditorApp {
     }
 
     _detectSlug() {
-        const match = window.location.pathname.match(/^\/editor\/([a-z0-9][a-z0-9-]*[a-z0-9])$/);
+        const base = window.EIWYG_BASE || '';
+        const path = window.location.pathname;
+        const localPath = base && path.startsWith(base) ? path.slice(base.length) : path;
+        const match = localPath.match(/^\/editor\/([a-z0-9][a-z0-9-]*[a-z0-9])$/);
         if (match) {
             this.slug = match[1];
             document.getElementById('dashboard-slug').value = this.slug;
@@ -123,7 +126,7 @@ class EditorApp {
 
     initWebSocket() {
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${protocol}//${window.location.host}/ws`;
+        const wsUrl = `${protocol}//${window.location.host}${window.EIWYG_BASE || ''}/ws`;
 
         try {
             this.ws = new WebSocket(wsUrl);
@@ -1113,7 +1116,7 @@ class EditorApp {
         };
 
         try {
-            const resp = await fetch('/api/dashboards', {
+            const resp = await fetch(`${window.EIWYG_BASE || ''}/api/dashboards`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
@@ -1127,7 +1130,7 @@ class EditorApp {
 
             this.slug = slug;
             // Update URL without reload
-            const newUrl = `/editor/${slug}`;
+            const newUrl = `${window.EIWYG_BASE || ''}/editor/${slug}`;
             if (window.location.pathname !== newUrl) {
                 window.history.pushState({}, '', newUrl);
             }
@@ -1144,7 +1147,7 @@ class EditorApp {
         const saved = await this.save();
         if (saved) {
             const slug = document.getElementById('dashboard-slug').value.trim();
-            window.location.href = `/view/${slug}`;
+            window.location.href = `${window.EIWYG_BASE || ''}/view/${slug}`;
         }
     }
 
@@ -1172,7 +1175,7 @@ class EditorApp {
 
     async _loadExistingDashboard(slug) {
         try {
-            const resp = await fetch(`/api/dashboards/${slug}`);
+            const resp = await fetch(`${window.EIWYG_BASE || ''}/api/dashboards/${slug}`);
             if (!resp.ok) {
                 if (resp.status === 404) {
                     this._toast('Dashboard not found', 'error');
@@ -1238,7 +1241,7 @@ class EditorApp {
                 sendBtn.disabled = true;
                 sendBtn.innerHTML = '<span class="loading-spinner"></span>';
 
-                const resp = await fetch('/api/chat', {
+                const resp = await fetch(`${window.EIWYG_BASE || ''}/api/chat`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({

@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showLoading();
 
         try {
-            const resp = await fetch(`/api/dashboards?username=${encodeURIComponent(username)}`);
+            const resp = await fetch(`${window.EIWYG_BASE || ''}/api/dashboards?username=${encodeURIComponent(username)}`);
             if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
             const data = await resp.json();
             renderResults(data);
@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showLoading();
 
         try {
-            const resp = await fetch('/api/search-dashboards', {
+            const resp = await fetch(`${window.EIWYG_BASE || ''}/api/search-dashboards`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ query }),
@@ -104,8 +104,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="dashboard-card-slug">${escHtml(d.slug)}</div>
                         </div>
                         <div class="dashboard-card-actions">
-                            <a href="/editor/${encodeURIComponent(d.slug)}" class="btn-edit">Edit</a>
-                            <a href="/view/${encodeURIComponent(d.slug)}" class="btn-view">View</a>
+                            <a href="${window.EIWYG_BASE || ''}/editor/${encodeURIComponent(d.slug)}" class="btn-edit">Edit</a>
+                            <a href="${window.EIWYG_BASE || ''}/view/${encodeURIComponent(d.slug)}" class="btn-view">View</a>
                         </div>
                     </div>
                     ${d.description ? `<div class="dashboard-card-desc">${escHtml(d.description)}</div>` : ''}

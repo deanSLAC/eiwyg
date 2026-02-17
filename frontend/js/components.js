@@ -1163,7 +1163,7 @@
 
         var windowSec = (state.timeWindow / 1000) || 3600;
         var maxPts = state.maxPoints || 500;
-        var url = '/api/pv-history/' + encodeURIComponent(widget.pv)
+        var url = (window.EIWYG_BASE || '') + '/api/pv-history/' + encodeURIComponent(widget.pv)
             + '?window=' + windowSec + '&max_points=' + maxPts;
 
         fetch(url)
