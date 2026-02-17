@@ -15,6 +15,8 @@ load_dotenv()
 DEFAULT_API_URL = "https://aiapi-prod.stanford.edu/v1"
 DEFAULT_MODEL = "claude-4-sonnet"
 
+LLM_ENABLED = os.environ.get("EIWYG_LLM_ENABLED", "true").lower() != "false"
+
 COMPONENT_TYPES = """
 Available component types:
 - "text-display": Read-only text showing PV value. Good for labels, status text.
@@ -85,15 +87,15 @@ Always return valid JSON with "reply" and "suggested_config" keys."""
 
 
 def _get_api_url() -> str:
-    return os.environ.get("LLM_API_URL", DEFAULT_API_URL).rstrip("/")
+    return os.environ.get("EIWYG_LLM_API_URL", DEFAULT_API_URL).rstrip("/")
 
 
 def _get_api_key() -> str | None:
-    return os.environ.get("LLM_API_KEY", "") or None
+    return os.environ.get("EIWYG_LLM_API_KEY", "") or None
 
 
 def _get_model() -> str:
-    return os.environ.get("LLM_MODEL", DEFAULT_MODEL)
+    return os.environ.get("EIWYG_LLM_MODEL", DEFAULT_MODEL)
 
 
 def _get_headers(api_key: str) -> dict:
@@ -116,10 +118,12 @@ def _parse_json_response(text: str) -> dict:
 
 async def chat_generate(message: str, current_config: dict | None = None) -> dict:
     """Generate or modify a dashboard via LLM."""
+    if not LLM_ENABLED:
+        return {"reply": "AI assistant is disabled.", "suggested_config": None}
     api_key = _get_api_key()
     if not api_key:
         return {
-            "reply": "No LLM_API_KEY set. Configure LLM_API_URL and LLM_API_KEY to use the AI assistant.",
+            "reply": "No EIWYG_LLM_API_KEY set. Configure EIWYG_LLM_API_URL and EIWYG_LLM_API_KEY to use the AI assistant.",
             "suggested_config": None,
         }
 
@@ -152,6 +156,8 @@ async def chat_generate(message: str, current_config: dict | None = None) -> dic
 
 async def search_dashboards(query: str, dashboards: list[dict]) -> list[str]:
     """Use LLM to find dashboards matching a description."""
+    if not LLM_ENABLED:
+        return []
     api_key = _get_api_key()
     if not api_key:
         return []

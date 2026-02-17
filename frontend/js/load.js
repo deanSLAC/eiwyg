@@ -12,6 +12,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const tabUsername = document.getElementById('tab-username');
     const tabDescription = document.getElementById('tab-description');
 
+    // Hide LLM-powered description search when disabled
+    if (!window.EIWYG_LLM_ENABLED) {
+        const descTab = document.querySelector('.search-tab[data-tab="description"]');
+        if (descTab) descTab.style.display = 'none';
+        tabDescription.style.display = 'none';
+    }
+
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
             tabs.forEach(t => t.classList.remove('active'));

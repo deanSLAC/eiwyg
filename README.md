@@ -27,7 +27,7 @@ uvicorn backend.main:app --host 0.0.0.0 --port 8080
 
 This starts EIWYG in simulated EPICS mode with SQLite storage. No external services required.
 
-To enable the AI assistant, copy `.env.example` to `.env` and configure `LLM_API_KEY` and `LLM_API_URL` (see [LLM Configuration](#llm-configuration)).
+To enable the AI assistant, copy `.env.example` to `.env` and configure `EIWYG_LLM_API_KEY` (see [LLM Configuration](#llm-configuration)).
 
 ## Environment Variables
 
@@ -36,9 +36,10 @@ To enable the AI assistant, copy `.env.example` to `.env` and configure `LLM_API
 | `EIWYG_SIM_MODE` | `true` | `false` to connect to real EPICS IOCs via Channel Access |
 | `EIWYG_BASE_PATH` | *(empty)* | Serve all routes under a subpath (e.g., `/eiwyg`) |
 | `EIWYG_ENV` | `dev` | Set to `production` to require PostgreSQL (prevents SQLite fallback) |
-| `LLM_API_URL` | Stanford AI Gateway | Base URL of any OpenAI-compatible API |
-| `LLM_API_KEY` | *(none)* | API key for the LLM service |
-| `LLM_MODEL` | `claude-4-sonnet` | Model name to request from the API |
+| `EIWYG_LLM_ENABLED` | `true` | Set to `false` to disable AI features and hide the chat UI |
+| `EIWYG_LLM_API_URL` | Stanford AI Gateway | Base URL of any OpenAI-compatible API |
+| `EIWYG_LLM_API_KEY` | *(none)* | API key for the LLM service |
+| `EIWYG_LLM_MODEL` | `claude-4-sonnet` | Model name to request from the API |
 | `PGHOST` | *(none)* | PostgreSQL host (enables Postgres instead of SQLite) |
 | `PGPORT` | `5432` | PostgreSQL port |
 | `PGUSER` | *(none)* | PostgreSQL username |
@@ -47,9 +48,9 @@ To enable the AI assistant, copy `.env.example` to `.env` and configure `LLM_API
 
 ## LLM Configuration
 
-The AI assistant defaults to the [Stanford AI API Gateway](https://aiapi.stanford.edu/) but works with any service that implements the OpenAI `/v1/chat/completions` endpoint. To use a different provider, override `LLM_API_URL` and `LLM_MODEL`:
+The AI assistant defaults to the [Stanford AI API Gateway](https://aiapi.stanford.edu/) but works with any service that implements the OpenAI `/v1/chat/completions` endpoint. To use a different provider, override `EIWYG_LLM_API_URL` and `EIWYG_LLM_MODEL`:
 
-| Provider | `LLM_API_URL` | `LLM_MODEL` example |
+| Provider | `EIWYG_LLM_API_URL` | `EIWYG_LLM_MODEL` example |
 |---|---|---|
 | Stanford AI Gateway | `https://aiapi-prod.stanford.edu/v1` *(default)* | `claude-4-sonnet` |
 | OpenAI | `https://api.openai.com/v1` | `gpt-4o` |
@@ -57,7 +58,7 @@ The AI assistant defaults to the [Stanford AI API Gateway](https://aiapi.stanfor
 | vLLM | `http://localhost:8000/v1` | *(your model)* |
 | LiteLLM | `http://localhost:4000/v1` | *(your model)* |
 
-Set `LLM_API_URL`, `LLM_API_KEY`, and `LLM_MODEL` in your `.env` file or as environment variables. The AI features are disabled when no key is configured — everything else works without it.
+Set `EIWYG_LLM_ENABLED=false` to fully disable AI features — the chat panel and LLM-powered search will be hidden from the UI. When enabled (default), the AI features are available if `EIWYG_LLM_API_KEY` is configured. Everything else works without it.
 
 ## Database
 
@@ -78,7 +79,7 @@ Pass configuration as environment variables:
 
 ```bash
 docker run -p 8080:8080 \
-  -e LLM_API_KEY=your_key_here \
+  -e EIWYG_LLM_API_KEY=your_key_here \
   eiwyg
 ```
 

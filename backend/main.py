@@ -11,7 +11,7 @@ from backend.database import init_db, close_db, save_dashboard, get_dashboard, l
 from backend.models import DashboardCreate, DashboardResponse, ChatRequest, ChatResponse
 from backend.epics_manager import EPICSManager
 from backend.ws_manager import ConnectionManager
-from backend.llm import chat_generate, search_dashboards
+from backend.llm import chat_generate, search_dashboards, LLM_ENABLED
 
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend")
 BASE_PATH = os.environ.get("EIWYG_BASE_PATH", "").rstrip("/")
@@ -42,7 +42,8 @@ def _serve_html(filename: str) -> HTMLResponse:
     with open(path, "r") as f:
         content = f.read()
     # Inject EIWYG_BASE into <head> so frontend JS can use it
-    base_script = f'<script>window.EIWYG_BASE="{BASE_PATH}";</script>'
+    llm_enabled_js = "true" if LLM_ENABLED else "false"
+    base_script = f'<script>window.EIWYG_BASE="{BASE_PATH}";window.EIWYG_LLM_ENABLED={llm_enabled_js};</script>'
     content = content.replace("<head>", f"<head>\n    {base_script}", 1)
     if BASE_PATH:
         # Prefix absolute static references

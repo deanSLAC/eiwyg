@@ -1220,6 +1220,10 @@ class EditorApp {
 
     _bindChatbot() {
         const panel = document.getElementById('chatbot-panel');
+        if (!window.EIWYG_LLM_ENABLED) {
+            panel.style.display = 'none';
+            return;
+        }
         const header = document.getElementById('chatbot-header');
         const input = document.getElementById('chatbot-input');
         const sendBtn = document.getElementById('chatbot-send');
