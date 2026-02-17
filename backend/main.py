@@ -7,7 +7,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request, HTTPExcept
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse
 
-from backend.database import init_db, save_dashboard, get_dashboard, list_dashboards, get_all_dashboards_with_config
+from backend.database import init_db, close_db, save_dashboard, get_dashboard, list_dashboards, get_all_dashboards_with_config
 from backend.models import DashboardCreate, DashboardResponse, ChatRequest, ChatResponse
 from backend.epics_manager import EPICSManager
 from backend.ws_manager import ConnectionManager
@@ -26,6 +26,7 @@ async def lifespan(app: FastAPI):
     await epics_mgr.start()
     yield
     await epics_mgr.stop()
+    await close_db()
 
 
 app = FastAPI(title="EIWYG - EPICS Is What You Get", lifespan=lifespan)
