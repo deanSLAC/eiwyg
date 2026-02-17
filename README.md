@@ -1,166 +1,126 @@
 # EIWYG - EPICS Is What You Get
 
-A web-based WYSIWYG editor for building EPICS control system GUIs, targeting synchrotron beamline applications.
+A web-based WYSIWYG editor for building [EPICS](https://epics-controls.org/) control system dashboards.
 
 ## Features
 
-- **Drag-and-drop dashboard builder** using Gridstack.js -- place, resize, and configure widgets on a 12-column grid
-- **14 widget types** for beamline instrumentation: text/numeric displays, inputs, sliders, toggles, LEDs, gauges, progress bars, motor controls, enum selectors, detector displays, labels, and time-series plots
-- **Live PV updates** via WebSocket -- widgets display real-time EPICS Process Variable values
-- **Time-series plot component** with configurable time windows, max point limits, and automatic bin-averaging compaction for long-duration trends
-- **Simulated EPICS mode** (default) -- 20+ realistic beamline PVs for development without a real EPICS network
-- **Real EPICS mode** via caproto -- connect to live IOCs by setting `EIWYG_SIM_MODE=false`
-- **Save/load dashboards** with usernames, descriptions, and custom URL slugs
-- **Frozen view mode** -- publish a dashboard to a unique URL for read-only monitoring
-- **AI chatbot** (optional) -- generate dashboard layouts from natural language via Stanford AI API Gateway
+- **Drag-and-drop dashboard builder** — place, resize, and configure widgets on a 12-column grid (Gridstack.js)
+- **14 widget types** for instrumentation: text/numeric displays, inputs, sliders, toggles, LEDs, gauges, progress bars, motor controls, enum selectors, detector displays, labels, and time-series plots
+- **Live PV updates** via WebSocket — widgets display real-time EPICS Process Variable values
+- **Time-series plots** with configurable windows, max points, and automatic bin-averaging for long-duration trends
+- **Simulated EPICS mode** (default) — 20+ realistic PVs for development without a real EPICS network
+- **Real EPICS mode** via [caproto](https://caproto.github.io/caproto/) — connect to live IOCs by setting `EIWYG_SIM_MODE=false`
+- **Save/load dashboards** with custom URL slugs, usernames, and descriptions
+- **View mode** — publish a dashboard to a unique URL for read-only monitoring
+- **AI assistant** (optional) — generate dashboard layouts from natural language using any OpenAI-compatible LLM API
 
-## Tech Stack
+## Quick Start
 
-- **Backend:** Python, FastAPI, WebSocket, SQLite (aiosqlite), caproto
-- **Frontend:** Vanilla JS, Gridstack.js 10, Chart.js 4 (all via CDN, no build step)
-- **LLM:** Stanford AI API Gateway (optional, requires `STANFORD_API_KEY`)
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+uvicorn backend.main:app --host 0.0.0.0 --port 8080
+# Open http://localhost:8080
+```
+
+This starts EIWYG in simulated EPICS mode with SQLite storage. No external services required.
+
+To enable the AI assistant, copy `.env.example` to `.env` and configure `LLM_API_KEY` and `LLM_API_URL` (see [LLM Configuration](#llm-configuration)).
 
 ## Environment Variables
 
 | Variable | Default | Description |
 |---|---|---|
-| `STANFORD_API_KEY` | *(none)* | Stanford Playground API key for the AI assistant |
-| `STANFORD_MODEL` | `claude-4-sonnet` | LLM model to use via the Stanford gateway |
-| `EIWYG_SIM_MODE` | `true` | Set to `false` to connect to real EPICS IOCs |
-| `EIWYG_HOST` | `0.0.0.0` | Server bind address (used by run.sh) |
-| `EIWYG_PORT` | `8080` | Server port (used by run.sh) |
+| `EIWYG_SIM_MODE` | `true` | `false` to connect to real EPICS IOCs via Channel Access |
+| `EIWYG_BASE_PATH` | *(empty)* | Serve all routes under a subpath (e.g., `/eiwyg`) |
+| `EIWYG_ENV` | `dev` | Set to `production` to require PostgreSQL (prevents SQLite fallback) |
+| `LLM_API_URL` | Stanford AI Gateway | Base URL of any OpenAI-compatible API |
+| `LLM_API_KEY` | *(none)* | API key for the LLM service |
+| `LLM_MODEL` | `claude-4-sonnet` | Model name to request from the API |
+| `PGHOST` | *(none)* | PostgreSQL host (enables Postgres instead of SQLite) |
+| `PGPORT` | `5432` | PostgreSQL port |
+| `PGUSER` | *(none)* | PostgreSQL username |
+| `PGPASSWORD` | *(none)* | PostgreSQL password |
+| `PGDATABASE` | `eiwyg` | PostgreSQL database name |
 
-## Local Development
+## LLM Configuration
 
-```bash
-# Create and activate virtual environment
-python3 -m venv venv
-source venv/bin/activate
+The AI assistant defaults to the [Stanford AI API Gateway](https://aiapi.stanford.edu/) but works with any service that implements the OpenAI `/v1/chat/completions` endpoint. To use a different provider, override `LLM_API_URL` and `LLM_MODEL`:
 
-# Install dependencies
-pip install -r requirements.txt
+| Provider | `LLM_API_URL` | `LLM_MODEL` example |
+|---|---|---|
+| Stanford AI Gateway | `https://aiapi-prod.stanford.edu/v1` *(default)* | `claude-4-sonnet` |
+| OpenAI | `https://api.openai.com/v1` | `gpt-4o` |
+| Ollama (local) | `http://localhost:11434/v1` | `llama3` |
+| vLLM | `http://localhost:8000/v1` | *(your model)* |
+| LiteLLM | `http://localhost:4000/v1` | *(your model)* |
 
-# Configure your API key
-cp .env.example .env
-# Edit .env and add your STANFORD_API_KEY
+Set `LLM_API_URL`, `LLM_API_KEY`, and `LLM_MODEL` in your `.env` file or as environment variables. The AI features are disabled when no key is configured — everything else works without it.
 
-# Run the server (simulated EPICS mode, no real IOC needed)
-uvicorn backend.main:app --host 0.0.0.0 --port 8080
+## Database
 
-# Open in browser
-open http://localhost:8080
-```
+EIWYG uses **SQLite** by default (zero config, stored in `eiwyg.db`). Set the `PG*` environment variables to use **PostgreSQL** instead.
 
-The `.env` file is gitignored and will not be committed.
+When `EIWYG_ENV=production`, PostgreSQL is required. The app will refuse to start without it, preventing silent data loss from ephemeral SQLite inside a container.
 
 ## Deployment
 
 ### Docker
 
-Build the image:
-
 ```bash
 docker build -t eiwyg .
+docker run -p 8080:8080 eiwyg
 ```
 
-Run with the API key passed as an environment variable (never bake it into the image):
+Pass configuration as environment variables:
 
 ```bash
-# Pass key directly
-docker run -e STANFORD_API_KEY=your_key_here -p 8080:8080 eiwyg
-
-# Or use an env file
-docker run --env-file .env -p 8080:8080 eiwyg
-```
-
-Override additional settings as needed:
-
-```bash
-docker run \
-  -e STANFORD_API_KEY=your_key_here \
-  -e STANFORD_MODEL=claude-4-sonnet \
-  -e EIWYG_SIM_MODE=false \
-  -p 8080:8080 \
+docker run -p 8080:8080 \
+  -e LLM_API_KEY=your_key_here \
   eiwyg
 ```
 
-The `.env` file is excluded from the Docker image via `.dockerignore`.
+### Subpath Deployment
 
-### Kubernetes
-
-The `k8s/` directory contains deployment manifests.
-
-**1. Create the secret** (do this directly in the cluster -- do not commit real keys):
+To serve behind a reverse proxy at a subpath (e.g., `https://example.com/eiwyg`):
 
 ```bash
-kubectl create secret generic eiwyg-secrets \
-  --from-literal=STANFORD_API_KEY=your_key_here
+EIWYG_BASE_PATH=/eiwyg uvicorn backend.main:app --host 0.0.0.0 --port 8080
 ```
 
-**2. Apply the configmap** (optional, to override the default model):
+The app handles its own path prefixing — no `rewrite-target` or path stripping in the reverse proxy. Just forward `/eiwyg` traffic to the app as-is.
 
-```bash
-kubectl apply -f k8s/configmap.yaml
-```
+### Production (Kubernetes)
 
-**3. Deploy:**
-
-```bash
-kubectl apply -f k8s/deployment.yaml
-kubectl apply -f k8s/service.yaml
-kubectl apply -f k8s/ingress.yaml
-```
-
-The deployment references `STANFORD_API_KEY` from the `eiwyg-secrets` Secret and `STANFORD_MODEL` from the `eiwyg-config` ConfigMap (optional).
-
-**Note:** `k8s/secret.yaml` is a reference template and is gitignored. Always create secrets via `kubectl create secret` rather than committing them to the repo.
+Set `EIWYG_ENV=production` and provide PostgreSQL credentials. A CI/CD workflow (`.github/workflows/build-push.yml`) builds and pushes Docker images to GHCR on each push to `main`.
 
 ## Project Structure
 
 ```
 backend/
-  main.py            # FastAPI app, routes, WebSocket handler
-  epics_manager.py   # EPICS PV manager (sim + real modes)
-  ws_manager.py      # WebSocket connection manager
-  pv_cache.py        # Time-series PV value cache with compaction
-  database.py        # SQLite database layer
-  models.py          # Pydantic models
-  llm.py             # Stanford AI API Gateway integration
-  test_ioc.py        # Standalone caproto test IOC
+  main.py            FastAPI app, routes, WebSocket handler
+  database.py        Database layer (SQLite or PostgreSQL)
+  epics_manager.py   EPICS PV manager (sim + real modes)
+  ws_manager.py      WebSocket connection manager
+  pv_cache.py        Time-series PV value cache with compaction
+  models.py          Pydantic request/response models
+  llm.py             LLM integration (OpenAI-compatible API)
+  test_ioc.py        Standalone caproto test IOC
 
 frontend/
-  index.html         # Landing page
-  editor.html        # WYSIWYG editor
-  view.html          # Frozen dashboard view
-  load.html          # Dashboard search/load
-  js/
-    editor.js        # Editor logic
-    components.js    # Widget component registry (14 types)
-    view.js          # Dashboard viewer
-    load.js          # Load page logic
-  css/
-    editor.css       # Editor styles
-    components.css   # Widget styles
-    view.css         # View styles
-    landing.css      # Landing page styles
-    load.css         # Load page styles
-
-k8s/
-  deployment.yaml    # Kubernetes Deployment
-  service.yaml       # Kubernetes Service
-  ingress.yaml       # Kubernetes Ingress
-  configmap.yaml     # Non-secret configuration
-  secret.yaml        # Secret template (gitignored)
+  index.html         Landing page
+  editor.html        Dashboard editor
+  view.html          Read-only dashboard viewer
+  load.html          Dashboard search/load
+  js/                Editor, viewer, loader, and widget logic
+  css/               Styles
 ```
 
-## Running the Test IOC
+## Tech Stack
 
-To run a standalone caproto IOC that serves the same PVs as the simulated mode (useful for testing real-mode connections):
-
-```bash
-python -m backend.test_ioc
-```
-
-## License
-
-MIT
+- **Backend:** Python, FastAPI, WebSocket, caproto
+- **Database:** SQLite (aiosqlite) or PostgreSQL (asyncpg)
+- **Frontend:** Vanilla JS, [Gridstack.js](https://gridstackjs.com/) 10, [Chart.js](https://www.chartjs.org/) 4 (CDN, no build step)
+- **LLM:** Any OpenAI-compatible API (optional)

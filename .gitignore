@@ -33,7 +33,7 @@ nohup.out
 # Local test IOC
 run_test_ioc.py
 
-# Kubernetes secrets (use kubectl create secret instead)
+# Kubernetes secrets
 k8s/secret.yaml
 
 # Claude

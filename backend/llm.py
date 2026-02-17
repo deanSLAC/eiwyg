@@ -1,4 +1,8 @@
-"""LLM chatbot for dashboard generation and search via Stanford AI API Gateway."""
+"""LLM chatbot for dashboard generation and search.
+
+Uses any OpenAI-compatible API (OpenAI, Anthropic via proxy, Ollama, vLLM,
+LiteLLM, Stanford AI Gateway, etc.). Configure via LLM_API_URL and LLM_API_KEY.
+"""
 import os
 import json
 import re
@@ -8,7 +12,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-API_BASE_URL = "https://aiapi-prod.stanford.edu/v1"
+DEFAULT_API_URL = "https://aiapi-prod.stanford.edu/v1"
 DEFAULT_MODEL = "claude-4-sonnet"
 
 COMPONENT_TYPES = """
@@ -80,12 +84,16 @@ If the user asks a question rather than requesting a dashboard, just respond wit
 Always return valid JSON with "reply" and "suggested_config" keys."""
 
 
+def _get_api_url() -> str:
+    return os.environ.get("LLM_API_URL", DEFAULT_API_URL).rstrip("/")
+
+
 def _get_api_key() -> str | None:
-    return os.environ.get("STANFORD_API_KEY", "") or None
+    return os.environ.get("LLM_API_KEY", "") or None
 
 
 def _get_model() -> str:
-    return os.environ.get("STANFORD_MODEL", DEFAULT_MODEL)
+    return os.environ.get("LLM_MODEL", DEFAULT_MODEL)
 
 
 def _get_headers(api_key: str) -> dict:
@@ -111,7 +119,7 @@ async def chat_generate(message: str, current_config: dict | None = None) -> dic
     api_key = _get_api_key()
     if not api_key:
         return {
-            "reply": "No STANFORD_API_KEY environment variable set. Please set it to use the AI assistant.",
+            "reply": "No LLM_API_KEY set. Configure LLM_API_URL and LLM_API_KEY to use the AI assistant.",
             "suggested_config": None,
         }
 
@@ -130,7 +138,7 @@ async def chat_generate(message: str, current_config: dict | None = None) -> dic
     try:
         async with httpx.AsyncClient(timeout=60) as client:
             resp = await client.post(
-                f"{API_BASE_URL}/chat/completions",
+                f"{_get_api_url()}/chat/completions",
                 headers=_get_headers(api_key),
                 json=payload,
             )
@@ -177,7 +185,7 @@ Only return the JSON array, nothing else."""
     try:
         async with httpx.AsyncClient(timeout=60) as client:
             resp = await client.post(
-                f"{API_BASE_URL}/chat/completions",
+                f"{_get_api_url()}/chat/completions",
                 headers=_get_headers(api_key),
                 json=payload,
             )
