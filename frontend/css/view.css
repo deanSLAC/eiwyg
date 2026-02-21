@@ -4,6 +4,8 @@
     --bg-darkest: #0f172a;
     --bg-dark: #1e293b;
     --bg-medium: #283548;
+    --header-bg: rgba(30, 41, 59, 0.85);
+    --footer-bg: rgba(30, 41, 59, 0.75);
     --border: #334155;
     --border-light: #475569;
     --text-primary: #e2e8f0;
@@ -15,6 +17,7 @@
     --success: #22c55e;
     --warning: #eab308;
     --danger: #ef4444;
+    --danger-hover: #dc2626;
     --font-sans: system-ui, -apple-system, sans-serif;
     --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 }
@@ -40,7 +43,7 @@ html, body {
     align-items: center;
     gap: 16px;
     padding: 8px 20px;
-    background: rgba(30, 41, 59, 0.85);
+    background: var(--header-bg);
     backdrop-filter: blur(8px);
     border-bottom: 1px solid var(--border);
     height: 48px;
@@ -297,7 +300,7 @@ html, body {
     align-items: center;
     justify-content: space-between;
     padding: 6px 20px;
-    background: rgba(30, 41, 59, 0.75);
+    background: var(--footer-bg);
     backdrop-filter: blur(8px);
     border-top: 1px solid var(--border);
     height: 32px;
@@ -405,4 +408,232 @@ html, body {
         padding: 3px 8px;
         font-size: 11px;
     }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Color Themes
+   Theme overrides for the view page. Each theme redefines the CSS
+   custom properties so all widget and layout styles adapt automatically.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── Theme: Blue Dream (default) ─────────────────────────────────── */
+/* Default variables in :root are already Blue Dream */
+
+/* ── Theme: Earthy ───────────────────────────────────────────────── */
+[data-theme="earthy"] {
+    --bg-darkest: #382c22;
+    --bg-dark: #2a4636;
+    --bg-medium: #3d4a3e;
+    --header-bg: #8b3a2a;
+    --footer-bg: #6b2e22;
+    --border: #4a5a48;
+    --border-light: #5e6b55;
+    --text-primary: #f5e6cc;
+    --text-secondary: #c8b090;
+    --text-muted: #8a7560;
+    --accent: #d4943a;
+    --accent-hover: #c08030;
+    --accent-glow: rgba(212, 148, 58, 0.35);
+    --success: #6a9b4a;
+    --warning: #d4943a;
+    --danger: #c04030;
+    --danger-hover: #a03428;
+    --font-sans: 'Georgia', 'Palatino Linotype', 'Book Antiqua', serif;
+}
+
+/* Earthy: warm terracotta header with cream/gold text */
+[data-theme="earthy"] .view-top-bar,
+[data-theme="earthy"] .view-status-bar {
+    color: #e8d4b8;
+}
+[data-theme="earthy"] .view-top-bar .view-title {
+    color: #f5e6cc;
+    letter-spacing: 0.02em;
+}
+[data-theme="earthy"] .view-top-bar .view-logo {
+    color: #d4943a;
+}
+[data-theme="earthy"] .view-top-bar .view-logo:hover {
+    color: #e8b060;
+}
+[data-theme="earthy"] .view-top-bar .btn {
+    color: #e8d4b8;
+    background: rgba(0, 0, 0, 0.2);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+[data-theme="earthy"] .view-top-bar .btn:hover {
+    background: rgba(0, 0, 0, 0.35);
+}
+
+/* ── Theme: Light ────────────────────────────────────────────────── */
+[data-theme="light"] {
+    --bg-darkest: #faf6f0;
+    --bg-dark: #ffffff;
+    --bg-medium: #f0e8de;
+    --header-bg: #1e3050;
+    --footer-bg: #1e3050;
+    --border: #d4c8b8;
+    --border-light: #b8a898;
+    --text-primary: #1a1a24;
+    --text-secondary: #3d3845;
+    --text-muted: #6b6575;
+    --accent: #d05530;
+    --accent-hover: #b84520;
+    --accent-glow: rgba(208, 85, 48, 0.25);
+    --success: #1a8a50;
+    --warning: #d49020;
+    --danger: #c03030;
+    --danger-hover: #a02020;
+}
+
+/* Light theme: deep navy header with warm light text */
+[data-theme="light"] .view-top-bar,
+[data-theme="light"] .view-status-bar {
+    color: #c8cee0;
+}
+[data-theme="light"] .view-top-bar .view-title {
+    color: #e8ecf4;
+}
+[data-theme="light"] .view-top-bar .view-logo {
+    color: #e0884a;
+}
+[data-theme="light"] .view-top-bar .view-logo:hover {
+    color: #f0a060;
+}
+[data-theme="light"] .view-top-bar .btn {
+    color: #c8cee0;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+[data-theme="light"] .view-top-bar .btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* ── Theme: Pastel ───────────────────────────────────────────────── */
+[data-theme="pastel"] {
+    --bg-darkest: #e8e0f0;
+    --bg-dark: #faf6f2;
+    --bg-medium: #e0d6e8;
+    --header-bg: #d4b4c4;
+    --footer-bg: #b4d0c4;
+    --border: #c8bcd0;
+    --border-light: #b0a4b8;
+    --text-primary: #2a2035;
+    --text-secondary: #4a3d58;
+    --text-muted: #7a6d8a;
+    --accent: #c86090;
+    --accent-hover: #b04878;
+    --accent-glow: rgba(200, 96, 144, 0.3);
+    --success: #5db87a;
+    --warning: #d4a040;
+    --danger: #d06060;
+    --danger-hover: #b84848;
+}
+
+/* Pastel theme: pastel pink header / pastel mint footer with dark text */
+[data-theme="pastel"] .view-top-bar {
+    color: #4a3040;
+}
+[data-theme="pastel"] .view-status-bar {
+    color: #2a4038;
+}
+[data-theme="pastel"] .view-top-bar .view-title {
+    color: #3a2030;
+}
+[data-theme="pastel"] .view-top-bar .view-logo {
+    color: #a04070;
+}
+[data-theme="pastel"] .view-top-bar .view-logo:hover {
+    color: #c05888;
+}
+[data-theme="pastel"] .view-top-bar .btn {
+    color: #4a3040;
+    background: rgba(0, 0, 0, 0.08);
+    border-color: rgba(0, 0, 0, 0.12);
+}
+[data-theme="pastel"] .view-top-bar .btn:hover {
+    background: rgba(0, 0, 0, 0.15);
+}
+
+/* ── Theme: Mondrian ─────────────────────────────────────────────── */
+[data-theme="mondrian"] {
+    --bg-darkest: #f5f5f0;
+    --bg-dark: #ffffff;
+    --bg-medium: #eeeeea;
+    --header-bg: #1a1a1a;
+    --footer-bg: #1a1a1a;
+    --border: #1a1a1a;
+    --border-light: #333333;
+    --text-primary: #1a1a1a;
+    --text-secondary: #3a3a3a;
+    --text-muted: #666666;
+    --accent: #004592;
+    --accent-hover: #003570;
+    --accent-glow: rgba(0, 69, 146, 0.3);
+    --success: #1a8d48;
+    --warning: #f0c800;
+    --danger: #d42020;
+    --danger-hover: #b01818;
+}
+
+/* Mondrian: header/footer text on black background */
+[data-theme="mondrian"] .view-top-bar,
+[data-theme="mondrian"] .view-status-bar {
+    color: #cccccc;
+}
+[data-theme="mondrian"] .view-top-bar .view-title {
+    color: #ffffff;
+}
+[data-theme="mondrian"] .view-top-bar .view-logo {
+    color: #3b82f6;
+}
+[data-theme="mondrian"] .view-top-bar .view-logo:hover {
+    color: #60a5fa;
+}
+[data-theme="mondrian"] .view-top-bar .btn {
+    color: #e0e0e0;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+[data-theme="mondrian"] .view-top-bar .btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Mondrian-specific overrides: thick black borders, no rounding */
+[data-theme="mondrian"] .grid-stack-item-content {
+    border-width: 3px;
+    border-radius: 0;
+}
+[data-theme="mondrian"] .widget-inner {
+    border-radius: 0;
+}
+
+/* Mondrian: color-block backgrounds on widgets (red, blue, yellow, white) */
+[data-theme="mondrian"] .grid-stack-item:nth-child(4n+1) > .grid-stack-item-content {
+    background: #d42020;
+    --bg-dark: #d42020;
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.8);
+    --text-muted: rgba(255, 255, 255, 0.6);
+}
+[data-theme="mondrian"] .grid-stack-item:nth-child(4n+2) > .grid-stack-item-content {
+    background: #004592;
+    --bg-dark: #004592;
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.8);
+    --text-muted: rgba(255, 255, 255, 0.6);
+}
+[data-theme="mondrian"] .grid-stack-item:nth-child(4n+3) > .grid-stack-item-content {
+    background: #f0c800;
+    --bg-dark: #f0c800;
+    --text-primary: #1a1a1a;
+    --text-secondary: #333333;
+    --text-muted: #555555;
+}
+[data-theme="mondrian"] .grid-stack-item:nth-child(4n+4) > .grid-stack-item-content {
+    background: #ffffff;
+    --bg-dark: #ffffff;
+    --text-primary: #1a1a1a;
+    --text-secondary: #333333;
+    --text-muted: #555555;
 }

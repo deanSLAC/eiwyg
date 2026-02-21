@@ -15,27 +15,54 @@
 <div class="top-bar">
     <a href="/" class="top-bar-logo">EIWYG</a>
     <div class="top-bar-fields">
+        <div class="field-with-tooltip">
+            <input type="text" id="dashboard-username" class="top-bar-field field-username" placeholder="Username">
+            <span class="field-tooltip" data-tooltip="Who this dashboard will belong to. Can be your name, or your beamline.">?</span>
+        </div>
         <input type="text" id="dashboard-title" class="top-bar-field field-title" placeholder="Dashboard Title">
-        <input type="text" id="dashboard-username" class="top-bar-field field-username" placeholder="Username">
         <input type="text" id="dashboard-description" class="top-bar-field field-description" placeholder="Description">
-        <input type="text" id="dashboard-slug" class="top-bar-field field-slug" placeholder="my-dashboard">
-        <span id="slug-error" class="slug-error"></span>
+        <div class="field-with-tooltip">
+            <input type="text" id="dashboard-slug" class="top-bar-field field-slug" placeholder="my-dashboard">
+            <span class="field-tooltip" data-tooltip="The slug. The URL endpoint and short name this dashboard will be referenced by.">?</span>
+            <span id="slug-error" class="slug-error"></span>
+        </div>
+        <div class="field-with-tooltip" id="pw-field-wrapper">
+            <input type="text" id="dashboard-pw" class="top-bar-field field-pw" placeholder="pw">
+            <span class="field-tooltip" data-tooltip="A simple key to prevent accidental modifications. Also required for Write mode. Not a password — all dashboards are openly viewable. Keep it simple, like 'bl15-2' (but not that, that one's mine).">?</span>
+        </div>
     </div>
     <div class="top-bar-actions">
         <button id="btn-save" class="btn btn-primary">Save</button>
-        <button id="btn-freeze" class="btn btn-success">Freeze &amp; View</button>
-        <a href="/" class="btn">Back to Home</a>
+        <button id="btn-freeze" class="btn btn-success">Save &amp; View</button>
     </div>
 </div>
 
 <!-- ── Editor Layout ──────────────────────────────────────────────── -->
 <div class="editor-layout">
+
     <div class="editor-main">
 
         <!-- Component Palette -->
         <div class="palette" id="palette">
             <div class="palette-header">Components</div>
-            <!-- Palette items are rendered by JS -->
+            <div class="palette-items" id="palette-items">
+                <!-- Palette items are rendered by JS -->
+            </div>
+
+            <!-- Theme Selector -->
+            <div class="theme-section">
+                <div class="palette-header">Theme</div>
+                <div class="theme-selector-wrapper">
+                    <select id="theme-selector" class="theme-select">
+                        <option value="blue-dream">Blue Dream</option>
+                        <option value="earthy">Earthy</option>
+                        <option value="light">Light</option>
+                        <option value="pastel">Pastel</option>
+                        <option value="mondrian">Mondrian</option>
+                    </select>
+                </div>
+            </div>
+
         </div>
 
         <!-- Grid Area -->
@@ -60,7 +87,23 @@
 
     </div>
 
-    <!-- AI Chatbot Panel -->
+    <!-- Variables Panel -->
+    <div class="variables-panel" id="variables-panel">
+        <div class="variables-header" id="variables-header">
+            <span>Variables</span>
+            <span class="field-tooltip" data-tooltip="Define template variables for your dashboard. Any widget PV can use {VarName} syntax, e.g. IOC:{Beamline}:Temperature. Change the variable value in one place and all widgets update. Useful when cloning dashboards for different beamlines.">?</span>
+            <span class="variables-toggle" id="variables-toggle">&#9660;</span>
+        </div>
+        <div class="variables-body collapsed" id="variables-body">
+            <div class="variables-list" id="variables-list">
+                <!-- Variable rows rendered by JS -->
+            </div>
+            <button class="btn btn-sm" id="btn-add-variable">+ Add Variable</button>
+        </div>
+    </div>
+
+    <!-- AI Chatbot Panel (commented out for now — do NOT delete, re-enable when LLM is ready) -->
+    <!--
     <div class="chatbot-panel" id="chatbot-panel" style="height: 200px;">
         <div class="chatbot-header" id="chatbot-header">
             <span class="chatbot-header-title">AI Assistant</span>
@@ -73,6 +116,7 @@
             <button id="chatbot-send" class="btn btn-primary btn-sm">Send</button>
         </div>
     </div>
+    -->
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/gridstack@10/dist/gridstack-all.js"></script>

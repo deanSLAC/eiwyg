@@ -4,6 +4,8 @@
     --bg-darkest: #0f172a;
     --bg-dark: #1e293b;
     --bg-medium: #283548;
+    --header-bg: rgba(30, 41, 59, 0.85);
+    --footer-bg: rgba(30, 41, 59, 0.75);
     --border: #334155;
     --border-light: #475569;
     --text-primary: #e2e8f0;
@@ -541,6 +543,87 @@ html, body {
     margin-top: 4px;
 }
 
+
+/* ── Variables Panel (bottom bar) ─────────────────────────────────── */
+
+.variables-panel {
+    background: var(--bg-dark);
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+}
+.variables-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+.variables-header .field-tooltip {
+    margin-left: 0;
+}
+.variables-toggle {
+    font-size: 10px;
+    transition: transform 0.2s;
+    margin-left: auto;
+}
+.variables-body.collapsed {
+    display: none;
+}
+.variables-body {
+    padding: 8px 16px 12px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.variables-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.variable-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.variable-row input {
+    background: var(--bg-darkest);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    color: var(--text-primary);
+    padding: 5px 8px;
+    font-size: 13px;
+    font-family: var(--font-mono);
+}
+.variable-row input:focus {
+    border-color: var(--accent);
+    outline: none;
+}
+.variable-row .var-key {
+    width: 120px;
+}
+.variable-row .var-value {
+    width: 180px;
+}
+.variable-row .var-eq {
+    color: var(--text-muted);
+    font-size: 13px;
+}
+.variable-row .var-remove {
+    background: none;
+    border: none;
+    color: var(--danger);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 2px 6px;
+}
+.variable-row .var-remove:hover {
+    color: #ef4444;
+}
+
 /* ── Chatbot Panel (Bottom) ────────────────────────────────────────── */
 
 .chatbot-panel {
@@ -752,4 +835,167 @@ html, body {
 
 @keyframes spin {
     to { transform: rotate(360deg); }
+}
+
+/* ── Field Tooltips ──────────────────────────────────────────────── */
+
+.field-with-tooltip {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.field-tooltip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--bg-medium);
+    color: var(--text-muted);
+    font-size: 11px;
+    cursor: help;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.field-tooltip:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 6px;
+    padding: 8px 12px;
+    background: var(--bg-darkest);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 12px;
+    font-weight: 400;
+    white-space: normal;
+    width: 250px;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    line-height: 1.4;
+}
+
+/* pw field */
+.field-pw {
+    width: 80px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+}
+
+/* ── Save Modal ──────────────────────────────────────────────────── */
+
+.save-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.save-modal {
+    background: var(--bg-dark);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    width: 420px;
+    max-width: 90vw;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+
+.save-modal h3 {
+    margin: 0 0 16px;
+    font-size: 16px;
+    color: var(--text-primary);
+}
+
+.save-modal p {
+    margin: 0 0 12px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.save-modal-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.save-modal input[type="text"] {
+    width: 100%;
+    background: var(--bg-darkest);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    color: var(--text-primary);
+    padding: 8px 12px;
+    font-size: 13px;
+    font-family: var(--font-mono);
+    margin-bottom: 8px;
+    outline: none;
+}
+
+.save-modal input[type="text"]:focus {
+    border-color: var(--accent);
+}
+
+.save-modal label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.save-modal .modal-section {
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.save-modal .modal-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.save-modal .modal-error {
+    color: var(--danger);
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+/* ── Theme Selector (inside palette) ──────────────────────────────── */
+
+.theme-section {
+    border-top: 1px solid var(--border);
+    margin-top: 8px;
+}
+.theme-selector-wrapper {
+    padding: 6px 14px 12px;
+}
+.theme-select {
+    width: 100%;
+    background: var(--bg-darkest);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    color: var(--text-primary);
+    padding: 6px 8px;
+    font-size: 13px;
+    font-family: var(--font-sans);
+    outline: none;
+    cursor: pointer;
+}
+.theme-select:focus {
+    border-color: var(--accent);
 }

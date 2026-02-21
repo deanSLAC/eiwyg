@@ -19,6 +19,7 @@ class DashboardViewer {
         this.maxReconnectDelay = 30000;
         this.reconnectTimer = null;
         this.componentsReady = false;
+        this.variables = {};         // Dashboard template variables
     }
 
     /**
@@ -131,6 +132,12 @@ class DashboardViewer {
                 this.widgets[w.id] = w;
             }
 
+            // Load dashboard variables
+            this.variables = config.variables || {};
+
+            // Load theme
+            this.theme = config.theme || 'blue-dream';
+
             return true;
         } catch (err) {
             console.error('Failed to load dashboard:', err);
@@ -161,6 +168,9 @@ class DashboardViewer {
         const gridWrapper = document.getElementById('view-grid-wrapper');
         if (loadingEl) loadingEl.style.display = 'none';
         if (gridWrapper) gridWrapper.style.display = '';
+
+        // Apply theme (set on html element so it overrides :root variables)
+        document.documentElement.setAttribute('data-theme', this.theme);
     }
 
     /**
@@ -197,8 +207,12 @@ class DashboardViewer {
         const components = window.EIWYG_COMPONENTS;
         const renderer = components ? components[widget.type] : null;
 
+        // Resolve variables in PV name for rendering
+        const resolvedPv = widget.pv ? resolveVariables(widget.pv, this.variables) : null;
+        const resolvedWidget = { ...widget, pv: resolvedPv };
+
         if (container && renderer && typeof renderer.render === 'function') {
-            renderer.render(container, widget);
+            renderer.render(container, resolvedWidget);
         } else if (container) {
             // Fallback rendering
             container.innerHTML = `
@@ -230,15 +244,20 @@ class DashboardViewer {
         const components = window.EIWYG_COMPONENTS;
 
         for (const widget of Object.values(this.widgets)) {
+            // Create a view of the widget with resolved PV for subscription
+            const resolvedPv = widget.pv ? resolveVariables(widget.pv, this.variables) : null;
+
             // Check if the component defines a getSubscribePVs method
             const renderer = components ? components[widget.type] : null;
             if (renderer && typeof renderer.getSubscribePVs === 'function') {
-                const pvs = renderer.getSubscribePVs(widget);
+                // Pass a widget copy with resolved PV so getSubscribePVs uses the resolved name
+                const resolvedWidget = { ...widget, pv: resolvedPv };
+                const pvs = renderer.getSubscribePVs(resolvedWidget);
                 if (Array.isArray(pvs)) {
                     pvs.forEach(pv => { if (pv) pvSet.add(pv); });
                 }
-            } else if (widget.pv) {
-                pvSet.add(widget.pv);
+            } else if (resolvedPv) {
+                pvSet.add(resolvedPv);
             }
         }
 
@@ -340,15 +359,19 @@ class DashboardViewer {
 
         // Find all widgets that use this PV and update them
         for (const [id, widget] of Object.entries(this.widgets)) {
+            // Resolve variables in the widget PV for matching
+            const resolvedPv = widget.pv ? resolveVariables(widget.pv, this.variables) : null;
+            const resolvedWidget = { ...widget, pv: resolvedPv };
+
             // Determine if this widget cares about this PV
             let relevant = false;
 
             const renderer = components ? components[widget.type] : null;
             if (renderer && typeof renderer.getSubscribePVs === 'function') {
-                const pvs = renderer.getSubscribePVs(widget);
+                const pvs = renderer.getSubscribePVs(resolvedWidget);
                 relevant = Array.isArray(pvs) && pvs.includes(pvName);
             } else {
-                relevant = (widget.pv === pvName);
+                relevant = (resolvedPv === pvName);
             }
 
             if (!relevant) continue;
@@ -360,9 +383,9 @@ class DashboardViewer {
                               el.querySelector('.grid-stack-item-content');
             if (!container) continue;
 
-            // Use component updater if available
+            // Use component updater if available (pass resolved widget for PV matching)
             if (renderer && typeof renderer.update === 'function') {
-                renderer.update(container, widget, pvName, pvData);
+                renderer.update(container, resolvedWidget, pvName, pvData);
             } else {
                 // Fallback: update the .widget-value element
                 const valueEl = container.querySelector(`[data-widget-id="${id}"]`) ||

@@ -40,6 +40,8 @@ class EditorApp {
         this.subscribedPVs = new Set();
         this.chatHistory = [];
         this.slug = null;            // slug from URL if editing existing dashboard
+        this.variables = {};         // Dashboard template variables {name: value}
+        this.theme = 'blue-dream';   // Color theme for view mode
 
         this._init();
     }
@@ -52,10 +54,15 @@ class EditorApp {
         this.initGrid();
         this.initWebSocket();
         this._bindTopBar();
+        this._bindVariablesPanel();
+        this._bindThemeSelector();
         this._bindChatbot();
         this._bindGlobalEvents();
 
         if (this.slug) {
+            // Hide pw field when editing existing dashboard
+            const pwWrapper = document.getElementById('pw-field-wrapper');
+            if (pwWrapper) pwWrapper.style.display = 'none';
             this._loadExistingDashboard(this.slug);
         }
     }
@@ -165,7 +172,10 @@ class EditorApp {
     _syncPVSubscriptions() {
         const currentPVs = new Set();
         Object.values(this.widgets).forEach(w => {
-            if (w.pv) currentPVs.add(w.pv);
+            if (w.pv) {
+                const resolved = resolveVariables(w.pv, this.variables);
+                if (resolved) currentPVs.add(resolved);
+            }
         });
 
         // Unsubscribe from PVs no longer in use
@@ -185,9 +195,12 @@ class EditorApp {
 
     _handlePVUpdate(pv, value, msg) {
         Object.values(this.widgets).forEach(widget => {
-            if (widget.pv === pv) {
-                widget._currentValue = value;
-                this._rerenderWidget(widget.id);
+            if (widget.pv) {
+                const resolvedPv = resolveVariables(widget.pv, this.variables);
+                if (resolvedPv === pv) {
+                    widget._currentValue = value;
+                    this._rerenderWidget(widget.id);
+                }
             }
         });
     }
@@ -201,7 +214,7 @@ class EditorApp {
     /* ── Palette ──────────────────────────────────────────────────── */
 
     _buildPalette() {
-        const palette = document.getElementById('palette');
+        const paletteItems = document.getElementById('palette-items');
         WIDGET_TYPES.forEach(wt => {
             const item = document.createElement('div');
             item.className = 'palette-item';
@@ -215,7 +228,7 @@ class EditorApp {
             item.setAttribute('gs-h', wt.h);
             item.setAttribute('data-widget-type', wt.type);
 
-            palette.appendChild(item);
+            paletteItems.appendChild(item);
         });
 
         // Set up Gridstack to accept external drags (no HTML5 draggable - let Gridstack handle it)
@@ -241,7 +254,6 @@ class EditorApp {
         const config = existingConfig || {
             label: typeDef.name,
             fontSize: 16,
-            fontColor: '#e2e8f0',
         };
 
         const widget = {
@@ -520,11 +532,14 @@ class EditorApp {
                 valueDisplay = `<div class="widget-value" style="font-size:${fontSize}px;color:${fontColor}">${value !== null && value !== undefined ? value : '--'}</div>`;
         }
 
+        const resolvedPv = pv ? resolveVariables(pv, this.variables) : '';
+        const pvDiffers = pv && resolvedPv && resolvedPv !== pv;
+
         return `
             <div class="widget-inner">
                 <span class="widget-label">${label}</span>
                 ${valueDisplay}
-                ${pv ? `<span class="widget-pv">${pv}</span>` : ''}
+                ${pv ? `<span class="widget-pv">${pv}${pvDiffers ? ` <span style="color:var(--text-muted);font-style:italic;">\u2192 ${resolvedPv}</span>` : ''}</span>` : ''}
                 <button class="widget-delete-btn" title="Delete">&times;</button>
             </div>
         `;
@@ -1069,6 +1084,8 @@ class EditorApp {
         return {
             widgets,
             columns: 12,
+            variables: { ...this.variables },
+            theme: this.theme,
         };
     }
 
@@ -1078,6 +1095,23 @@ class EditorApp {
         this.widgets = {};
         this.selectedWidgetId = null;
         this._hideConfig();
+
+        // Load variables
+        this.variables = (config && config.variables) ? { ...config.variables } : {};
+        this._renderVariables();
+
+        // Expand variables panel if variables are defined
+        const varBody = document.getElementById('variables-body');
+        const varToggle = document.getElementById('variables-toggle');
+        if (varBody && Object.keys(this.variables).length > 0) {
+            varBody.classList.remove('collapsed');
+            if (varToggle) varToggle.style.transform = '';
+        }
+
+        // Load theme
+        this.theme = config.theme || 'blue-dream';
+        const themeSelect = document.getElementById('theme-selector');
+        if (themeSelect) themeSelect.value = this.theme;
 
         if (!config || !config.widgets) return;
 
@@ -1104,14 +1138,35 @@ class EditorApp {
         const title = document.getElementById('dashboard-title').value.trim();
         const description = document.getElementById('dashboard-description').value.trim();
         const username = document.getElementById('dashboard-username').value.trim();
+        const pw = document.getElementById('dashboard-pw')?.value.trim() || '';
 
         if (!this._validateSlug(slug)) return false;
 
+        // Check if dashboard already exists
+        try {
+            const existsResp = await fetch(`${window.EIWYG_BASE || ''}/api/dashboard-exists/${slug}`);
+            const existsData = await existsResp.json();
+
+            if (existsData.exists) {
+                // Dashboard exists - show overwrite/save-as modal
+                this._showSaveModal(slug, title, description, username);
+                return false; // save handled by modal
+            }
+        } catch (err) {
+            // If check fails, try saving anyway
+        }
+
+        // New dashboard - save directly
+        return this._doSave(slug, title, description, username, pw);
+    }
+
+    async _doSave(slug, title, description, username, pw) {
         const payload = {
             slug,
             title,
             description,
             username,
+            pw,
             config: this.serialize(),
         };
 
@@ -1134,6 +1189,9 @@ class EditorApp {
             if (window.location.pathname !== newUrl) {
                 window.history.pushState({}, '', newUrl);
             }
+            // Hide pw field now that we're editing an existing dashboard
+            const pwWrapper = document.getElementById('pw-field-wrapper');
+            if (pwWrapper) pwWrapper.style.display = 'none';
 
             this._toast('Dashboard saved successfully', 'success');
             return true;
@@ -1143,10 +1201,143 @@ class EditorApp {
         }
     }
 
+    _showSaveModal(slug, title, description, username) {
+        // Remove any existing modal
+        this._closeSaveModal();
+
+        const overlay = document.createElement('div');
+        overlay.className = 'save-modal-overlay';
+        overlay.id = 'save-modal-overlay';
+
+        overlay.innerHTML = `
+            <div class="save-modal">
+                <h3>Dashboard "${slug}" already exists</h3>
+                <div class="modal-section">
+                    <p><strong>Overwrite</strong> the existing dashboard?</p>
+                    <label>Enter pw to confirm:</label>
+                    <input type="text" id="modal-overwrite-pw" placeholder="pw">
+                    <div id="modal-overwrite-error" class="modal-error"></div>
+                    <div class="save-modal-actions">
+                        <button class="btn btn-primary" id="modal-btn-overwrite">Overwrite</button>
+                    </div>
+                </div>
+                <div class="modal-section">
+                    <p><strong>Save As</strong> a new dashboard instead:</p>
+                    <label>Username:</label>
+                    <input type="text" id="modal-saveas-username" value="${this._esc(username)}">
+                    <label>Endpoint (slug):</label>
+                    <input type="text" id="modal-saveas-slug" value="${this._esc(slug)}">
+                    <div id="modal-saveas-error" class="modal-error"></div>
+                    <div class="save-modal-actions">
+                        <button class="btn btn-success" id="modal-btn-saveas">Save As</button>
+                    </div>
+                </div>
+                <div class="save-modal-actions" style="justify-content:flex-end;">
+                    <button class="btn" id="modal-btn-cancel">Cancel</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+
+        // Overwrite button
+        document.getElementById('modal-btn-overwrite').addEventListener('click', async () => {
+            const pw = document.getElementById('modal-overwrite-pw').value.trim();
+            const errorEl = document.getElementById('modal-overwrite-error');
+            errorEl.textContent = '';
+
+            try {
+                const resp = await fetch(`${window.EIWYG_BASE || ''}/api/dashboards/verify-pw`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ slug, pw }),
+                });
+                const data = await resp.json();
+
+                if (data.valid) {
+                    this._closeSaveModal();
+                    await this._doSave(slug, title, description, username, pw);
+                } else {
+                    errorEl.textContent = 'Incorrect pw. Try again.';
+                }
+            } catch (err) {
+                errorEl.textContent = `Error: ${err.message}`;
+            }
+        });
+
+        // Save As button
+        document.getElementById('modal-btn-saveas').addEventListener('click', async () => {
+            const newUsername = document.getElementById('modal-saveas-username').value.trim();
+            let newSlug = document.getElementById('modal-saveas-slug').value.trim()
+                .toLowerCase().replace(/[^a-z0-9-]/g, '').replace(/--+/g, '-');
+            const errorEl = document.getElementById('modal-saveas-error');
+            errorEl.textContent = '';
+
+            if (!this._validateSlug(newSlug)) {
+                errorEl.textContent = 'Invalid slug format.';
+                return;
+            }
+
+            if (newSlug === slug && newUsername === username) {
+                errorEl.textContent = 'Change at least the username or endpoint.';
+                return;
+            }
+
+            // Check if the new slug already exists
+            try {
+                const existsResp = await fetch(`${window.EIWYG_BASE || ''}/api/dashboard-exists/${newSlug}`);
+                const existsData = await existsResp.json();
+
+                if (existsData.exists && newSlug !== slug) {
+                    errorEl.textContent = `"${newSlug}" already exists!`;
+                    return;
+                }
+                if (existsData.exists && newSlug === slug) {
+                    errorEl.textContent = 'That slug already exists. Choose a different one.';
+                    return;
+                }
+            } catch (err) {
+                // If check fails, try saving anyway
+            }
+
+            // Get pw from the create field (if visible) or empty for new dashboard
+            const pw = document.getElementById('dashboard-pw')?.value.trim() || '';
+            this._closeSaveModal();
+
+            // Update the top-bar fields to reflect the new values
+            document.getElementById('dashboard-username').value = newUsername;
+            document.getElementById('dashboard-slug').value = newSlug;
+
+            await this._doSave(newSlug, title, description, newUsername, pw);
+        });
+
+        // Cancel button
+        document.getElementById('modal-btn-cancel').addEventListener('click', () => {
+            this._closeSaveModal();
+        });
+
+        // Close on overlay click
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) this._closeSaveModal();
+        });
+    }
+
+    _closeSaveModal() {
+        const overlay = document.getElementById('save-modal-overlay');
+        if (overlay) overlay.remove();
+    }
+
     async freeze() {
-        const saved = await this.save();
+        const slug = document.getElementById('dashboard-slug').value.trim();
+        const title = document.getElementById('dashboard-title').value.trim();
+        const description = document.getElementById('dashboard-description').value.trim();
+        const username = document.getElementById('dashboard-username').value.trim();
+        const pw = document.getElementById('dashboard-pw')?.value.trim() || '';
+
+        if (!this._validateSlug(slug)) return;
+
+        const saved = await this._doSave(slug, title, description, username, pw);
         if (saved) {
-            const slug = document.getElementById('dashboard-slug').value.trim();
             window.location.href = `${window.EIWYG_BASE || ''}/view/${slug}`;
         }
     }
@@ -1216,12 +1407,117 @@ class EditorApp {
         });
     }
 
-    /* ── Chatbot ──────────────────────────────────────────────────── */
+
+    /* ── Variables Panel ──────────────────────────────────────────── */
+
+    _bindVariablesPanel() {
+        const header = document.getElementById('variables-header');
+        const body = document.getElementById('variables-body');
+        const toggle = document.getElementById('variables-toggle');
+        const addBtn = document.getElementById('btn-add-variable');
+
+        // Toggle collapse (body starts collapsed)
+        header.addEventListener('click', () => {
+            body.classList.toggle('collapsed');
+            toggle.style.transform = body.classList.contains('collapsed') ? 'rotate(-90deg)' : '';
+        });
+
+        // Add variable button
+        addBtn.addEventListener('click', () => {
+            // Find a unique default name
+            let idx = 1;
+            while (this.variables.hasOwnProperty('BL' + idx)) idx++;
+            const defaultName = 'BL' + idx;
+            this.variables[defaultName] = '';
+            this._renderVariables();
+            this._syncPVSubscriptions();
+            // Re-render all widgets to update resolved PV display
+            Object.keys(this.widgets).forEach(id => this._rerenderWidget(id));
+        });
+
+        // Render initial state
+        this._renderVariables();
+    }
+
+    _renderVariables() {
+        const list = document.getElementById('variables-list');
+        if (!list) return;
+        list.innerHTML = '';
+
+        const keys = Object.keys(this.variables);
+        keys.forEach(key => {
+            const row = document.createElement('div');
+            row.className = 'variable-row';
+
+            const keyInput = document.createElement('input');
+            keyInput.type = 'text';
+            keyInput.className = 'var-key';
+            keyInput.value = key;
+            keyInput.placeholder = 'Name';
+
+            const eq = document.createElement('span');
+            eq.className = 'var-eq';
+            eq.textContent = '=';
+
+            const valInput = document.createElement('input');
+            valInput.type = 'text';
+            valInput.className = 'var-value';
+            valInput.value = this.variables[key];
+            valInput.placeholder = 'Value';
+
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'var-remove';
+            removeBtn.innerHTML = '&times;';
+            removeBtn.title = 'Remove variable';
+
+            row.appendChild(keyInput);
+            row.appendChild(eq);
+            row.appendChild(valInput);
+            row.appendChild(removeBtn);
+            list.appendChild(row);
+
+            // Key rename handler
+            keyInput.addEventListener('change', () => {
+                const newKey = keyInput.value.trim();
+                if (!newKey || (newKey !== key && this.variables.hasOwnProperty(newKey))) {
+                    // Revert if empty or duplicate
+                    keyInput.value = key;
+                    return;
+                }
+                if (newKey !== key) {
+                    const val = this.variables[key];
+                    delete this.variables[key];
+                    this.variables[newKey] = val;
+                    this._renderVariables();
+                    this._syncPVSubscriptions();
+                    Object.keys(this.widgets).forEach(id => this._rerenderWidget(id));
+                }
+            });
+
+            // Value change handler
+            valInput.addEventListener('input', () => {
+                this.variables[key] = valInput.value;
+                this._syncPVSubscriptions();
+                // Re-render all widgets to update resolved PV display
+                Object.keys(this.widgets).forEach(id => this._rerenderWidget(id));
+            });
+
+            // Remove handler
+            removeBtn.addEventListener('click', () => {
+                delete this.variables[key];
+                this._renderVariables();
+                this._syncPVSubscriptions();
+                Object.keys(this.widgets).forEach(id => this._rerenderWidget(id));
+            });
+        });
+    }
+
+    /* ── Chatbot (commented out in HTML — do NOT delete, re-enable when LLM is ready) ── */
 
     _bindChatbot() {
         const panel = document.getElementById('chatbot-panel');
-        if (!window.EIWYG_LLM_ENABLED) {
-            panel.style.display = 'none';
+        if (!panel || !window.EIWYG_LLM_ENABLED) {
+            if (panel) panel.style.display = 'none';
             return;
         }
         const header = document.getElementById('chatbot-header');
@@ -1299,6 +1595,17 @@ class EditorApp {
 
         container.appendChild(msgEl);
         container.scrollTop = container.scrollHeight;
+    }
+
+    /* ── Theme Selector ──────────────────────────────────────────── */
+
+    _bindThemeSelector() {
+        const select = document.getElementById('theme-selector');
+        if (!select) return;
+        select.value = this.theme;
+        select.addEventListener('change', () => {
+            this.theme = select.value;
+        });
     }
 
     /* ── Global Events ────────────────────────────────────────────── */

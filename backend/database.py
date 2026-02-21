@@ -36,9 +36,11 @@ CREATE TABLE IF NOT EXISTS dashboards (
     title TEXT NOT NULL DEFAULT '',
     description TEXT NOT NULL DEFAULT '',
     username TEXT NOT NULL DEFAULT '',
+    pw TEXT NOT NULL DEFAULT '',
     config TEXT NOT NULL DEFAULT '{"widgets":[],"columns":12}',
     created_at TEXT NOT NULL,
-    updated_at TEXT NOT NULL
+    updated_at TEXT NOT NULL,
+    deleted INTEGER NOT NULL DEFAULT 0
 );
 """
 
@@ -64,11 +66,30 @@ async def init_db():
         _pool = await asyncpg.create_pool(dsn, min_size=1, max_size=5)
         async with _pool.acquire() as conn:
             await conn.execute(_CREATE_TABLE)
+            # Migrate existing tables: add new columns if missing
+            for col, coltype, default in [
+                ("pw", "TEXT", "''"),
+                ("deleted", "INTEGER", "0"),
+            ]:
+                await conn.execute(
+                    f"ALTER TABLE dashboards ADD COLUMN IF NOT EXISTS {col} {coltype} NOT NULL DEFAULT {default}"
+                )
         print(f"Database: PostgreSQL ({_PGHOST or 'DATABASE_URL'})")
     else:
         import aiosqlite
         async with aiosqlite.connect(_DB_PATH) as db:
             await db.execute(_CREATE_TABLE)
+            # Migrate existing tables: add new columns if missing
+            cursor = await db.execute("PRAGMA table_info(dashboards)")
+            existing_cols = {row[1] for row in await cursor.fetchall()}
+            for col, coltype, default in [
+                ("pw", "TEXT", "''"),
+                ("deleted", "INTEGER", "0"),
+            ]:
+                if col not in existing_cols:
+                    await db.execute(
+                        f"ALTER TABLE dashboards ADD COLUMN {col} {coltype} NOT NULL DEFAULT {default}"
+                    )
             await db.commit()
         print(f"Database: SQLite ({_DB_PATH})")
 
@@ -81,35 +102,35 @@ async def close_db():
 
 
 async def save_dashboard(slug: str, title: str, description: str,
-                         username: str, config: dict) -> dict:
+                         username: str, config: dict, pw: str = "") -> dict:
     now = datetime.now(timezone.utc).isoformat()
     config_json = json.dumps(config)
 
     if USE_POSTGRES:
         async with _pool.acquire() as conn:
             await conn.execute(
-                """INSERT INTO dashboards (slug, title, description, username, config, created_at, updated_at)
-                   VALUES ($1, $2, $3, $4, $5, $6, $7)
+                """INSERT INTO dashboards (slug, title, description, username, pw, config, created_at, updated_at)
+                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
                    ON CONFLICT (slug) DO UPDATE
-                   SET title=$2, description=$3, username=$4, config=$5, updated_at=$7""",
-                slug, title, description, username, config_json, now, now)
+                   SET title=$2, description=$3, username=$4, pw=$5, config=$6, updated_at=$8""",
+                slug, title, description, username, pw, config_json, now, now)
     else:
         import aiosqlite
         async with aiosqlite.connect(_DB_PATH) as db:
             existing = await db.execute(
-                "SELECT slug FROM dashboards WHERE slug = ?", (slug,))
+                "SELECT slug FROM dashboards WHERE slug = ? AND deleted = 0", (slug,))
             row = await existing.fetchone()
             if row:
                 await db.execute(
                     """UPDATE dashboards
-                       SET title=?, description=?, username=?, config=?, updated_at=?
+                       SET title=?, description=?, username=?, pw=?, config=?, updated_at=?
                        WHERE slug=?""",
-                    (title, description, username, config_json, now, slug))
+                    (title, description, username, pw, config_json, now, slug))
             else:
                 await db.execute(
-                    """INSERT INTO dashboards (slug, title, description, username, config, created_at, updated_at)
-                       VALUES (?, ?, ?, ?, ?, ?, ?)""",
-                    (slug, title, description, username, config_json, now, now))
+                    """INSERT INTO dashboards (slug, title, description, username, pw, config, created_at, updated_at)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                    (slug, title, description, username, pw, config_json, now, now))
             await db.commit()
 
     return await get_dashboard(slug)
@@ -118,7 +139,8 @@ async def save_dashboard(slug: str, title: str, description: str,
 async def get_dashboard(slug: str) -> dict | None:
     if USE_POSTGRES:
         async with _pool.acquire() as conn:
-            row = await conn.fetchrow("SELECT * FROM dashboards WHERE slug = $1", slug)
+            row = await conn.fetchrow(
+                "SELECT * FROM dashboards WHERE slug = $1 AND deleted = 0", slug)
             if not row:
                 return None
             d = dict(row)
@@ -129,13 +151,29 @@ async def get_dashboard(slug: str) -> dict | None:
         async with aiosqlite.connect(_DB_PATH) as db:
             db.row_factory = aiosqlite.Row
             cursor = await db.execute(
-                "SELECT * FROM dashboards WHERE slug = ?", (slug,))
+                "SELECT * FROM dashboards WHERE slug = ? AND deleted = 0", (slug,))
             row = await cursor.fetchone()
             if not row:
                 return None
             d = dict(row)
             d["config"] = json.loads(d["config"])
             return d
+
+
+async def get_dashboard_pw(slug: str) -> str | None:
+    """Get just the pw for a dashboard. Returns None if dashboard doesn't exist."""
+    if USE_POSTGRES:
+        async with _pool.acquire() as conn:
+            row = await conn.fetchrow(
+                "SELECT pw FROM dashboards WHERE slug = $1 AND deleted = 0", slug)
+            return row["pw"] if row else None
+    else:
+        import aiosqlite
+        async with aiosqlite.connect(_DB_PATH) as db:
+            cursor = await db.execute(
+                "SELECT pw FROM dashboards WHERE slug = ? AND deleted = 0", (slug,))
+            row = await cursor.fetchone()
+            return row[0] if row else None
 
 
 async def list_dashboards(username: str = None) -> list[dict]:
@@ -145,11 +183,11 @@ async def list_dashboards(username: str = None) -> list[dict]:
         async with _pool.acquire() as conn:
             if username:
                 rows = await conn.fetch(
-                    f"SELECT {cols} FROM dashboards WHERE username = $1 ORDER BY updated_at DESC",
+                    f"SELECT {cols} FROM dashboards WHERE username = $1 AND deleted = 0 ORDER BY updated_at DESC",
                     username)
             else:
                 rows = await conn.fetch(
-                    f"SELECT {cols} FROM dashboards ORDER BY updated_at DESC")
+                    f"SELECT {cols} FROM dashboards WHERE deleted = 0 ORDER BY updated_at DESC")
             return [dict(r) for r in rows]
     else:
         import aiosqlite
@@ -157,11 +195,11 @@ async def list_dashboards(username: str = None) -> list[dict]:
             db.row_factory = aiosqlite.Row
             if username:
                 cursor = await db.execute(
-                    f"SELECT {cols} FROM dashboards WHERE username = ? ORDER BY updated_at DESC",
+                    f"SELECT {cols} FROM dashboards WHERE username = ? AND deleted = 0 ORDER BY updated_at DESC",
                     (username,))
             else:
                 cursor = await db.execute(
-                    f"SELECT {cols} FROM dashboards ORDER BY updated_at DESC")
+                    f"SELECT {cols} FROM dashboards WHERE deleted = 0 ORDER BY updated_at DESC")
             rows = await cursor.fetchall()
             return [dict(r) for r in rows]
 
@@ -170,7 +208,8 @@ async def get_all_dashboards_with_config() -> list[dict]:
     """Get all dashboards including config - used for LLM search."""
     if USE_POSTGRES:
         async with _pool.acquire() as conn:
-            rows = await conn.fetch("SELECT * FROM dashboards ORDER BY updated_at DESC")
+            rows = await conn.fetch(
+                "SELECT * FROM dashboards WHERE deleted = 0 ORDER BY updated_at DESC")
             result = []
             for r in rows:
                 d = dict(r)
@@ -181,7 +220,8 @@ async def get_all_dashboards_with_config() -> list[dict]:
         import aiosqlite
         async with aiosqlite.connect(_DB_PATH) as db:
             db.row_factory = aiosqlite.Row
-            cursor = await db.execute("SELECT * FROM dashboards ORDER BY updated_at DESC")
+            cursor = await db.execute(
+                "SELECT * FROM dashboards WHERE deleted = 0 ORDER BY updated_at DESC")
             rows = await cursor.fetchall()
             result = []
             for r in rows:
@@ -189,3 +229,19 @@ async def get_all_dashboards_with_config() -> list[dict]:
                 d["config"] = json.loads(d["config"])
                 result.append(d)
             return result
+
+
+async def delete_dashboard(slug: str) -> bool:
+    """Soft-delete a dashboard by setting deleted = 1."""
+    if USE_POSTGRES:
+        async with _pool.acquire() as conn:
+            result = await conn.execute(
+                "UPDATE dashboards SET deleted = 1 WHERE slug = $1 AND deleted = 0", slug)
+            return result != "UPDATE 0"
+    else:
+        import aiosqlite
+        async with aiosqlite.connect(_DB_PATH) as db:
+            cursor = await db.execute(
+                "UPDATE dashboards SET deleted = 1 WHERE slug = ? AND deleted = 0", (slug,))
+            await db.commit()
+            return cursor.rowcount > 0

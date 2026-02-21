@@ -8,8 +8,8 @@
    -------------------------------------------------------------------------- */
 
 .eiwyg-widget {
-    background-color: #1e293b;
-    color: #e2e8f0;
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
     padding: 10px 12px;
     overflow: hidden;
     border-radius: 6px;
@@ -27,7 +27,7 @@
    -------------------------------------------------------------------------- */
 
 .eiwyg-widget-label {
-    color: #94a3b8;
+    color: var(--text-secondary);
     font-size: 12px;
     font-weight: 500;
     text-transform: uppercase;
@@ -40,21 +40,21 @@
 
 .eiwyg-value {
     font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
-    color: #f8fafc;
+    color: var(--text-primary);
     font-weight: 600;
 }
 
 .eiwyg-units {
-    color: #94a3b8;
+    color: var(--text-secondary);
     font-size: 12px;
     margin-left: 4px;
     white-space: nowrap;
 }
 
 .eiwyg-btn {
-    background-color: #334155;
-    color: #e2e8f0;
-    border: 1px solid #475569;
+    background-color: var(--border);
+    color: var(--text-primary);
+    border: 1px solid var(--border-light);
     border-radius: 4px;
     padding: 4px 10px;
     font-size: 13px;
@@ -65,18 +65,18 @@
 }
 
 .eiwyg-btn:hover {
-    background-color: #475569;
-    border-color: #64748b;
+    background-color: var(--border-light);
+    border-color: var(--text-muted);
 }
 
 .eiwyg-btn:active {
-    background-color: #1e293b;
+    background-color: var(--bg-dark);
 }
 
 .eiwyg-input {
-    background-color: #0f172a;
-    color: #e2e8f0;
-    border: 1px solid #334155;
+    background-color: var(--bg-darkest);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
     border-radius: 4px;
     padding: 4px 8px;
     font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
@@ -86,14 +86,14 @@
 }
 
 .eiwyg-input:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-glow);
 }
 
 .eiwyg-select {
-    background-color: #0f172a;
-    color: #e2e8f0;
-    border: 1px solid #334155;
+    background-color: var(--bg-darkest);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
     border-radius: 4px;
     padding: 6px 10px;
     font-family: inherit;
@@ -110,8 +110,8 @@
 }
 
 .eiwyg-select:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-glow);
 }
 
 /* --------------------------------------------------------------------------
@@ -119,11 +119,11 @@
    -------------------------------------------------------------------------- */
 
 .eiwyg-severity-minor {
-    border-left: 3px solid #eab308;
+    border-left: 3px solid var(--warning);
 }
 
 .eiwyg-severity-major {
-    border-left: 3px solid #ef4444;
+    border-left: 3px solid var(--danger);
 }
 
 .eiwyg-severity-invalid {
@@ -145,6 +145,7 @@
     font-weight: 600;
     line-height: 1.3;
     word-wrap: break-word;
+    color: var(--text-primary);
 }
 
 /* --------------------------------------------------------------------------
@@ -246,14 +247,14 @@
     flex-shrink: 0;
     height: 32px;
     font-weight: 600;
-    background-color: #3b82f6;
-    border-color: #3b82f6;
+    background-color: var(--accent);
+    border-color: var(--accent);
     color: #fff;
 }
 
 .eiwyg-btn-set:hover {
-    background-color: #2563eb;
-    border-color: #2563eb;
+    background-color: var(--accent-hover);
+    border-color: var(--accent-hover);
 }
 
 /* --------------------------------------------------------------------------
@@ -276,7 +277,7 @@
     appearance: none;
     height: 6px;
     border-radius: 3px;
-    background: #334155;
+    background: var(--border);
     outline: none;
     cursor: pointer;
     min-width: 0;
@@ -288,9 +289,9 @@
     width: 18px;
     height: 18px;
     border-radius: 50%;
-    background: #3b82f6;
+    background: var(--accent);
     cursor: pointer;
-    border: 2px solid #1e293b;
+    border: 2px solid var(--bg-dark);
     box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
 }
 
@@ -298,16 +299,16 @@
     width: 18px;
     height: 18px;
     border-radius: 50%;
-    background: #3b82f6;
+    background: var(--accent);
     cursor: pointer;
-    border: 2px solid #1e293b;
+    border: 2px solid var(--bg-dark);
     box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
 }
 
 .eiwyg-slider-input::-moz-range-track {
     height: 6px;
     border-radius: 3px;
-    background: #334155;
+    background: var(--border);
 }
 
 .eiwyg-slider-value {
@@ -334,7 +335,7 @@
 .eiwyg-toggle-label {
     margin-bottom: 0;
     font-size: 14px;
-    color: #e2e8f0;
+    color: var(--text-primary);
     text-transform: none;
     letter-spacing: normal;
 }
@@ -356,7 +357,7 @@
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background-color: #f8fafc;
+    background-color: var(--text-primary);
     position: absolute;
     top: 3px;
     left: 3px;
@@ -389,7 +390,7 @@
     border-radius: 50%;
     flex-shrink: 0;
     transition: background-color 0.2s ease, box-shadow 0.3s ease;
-    border: 2px solid rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(128, 128, 128, 0.2);
 }
 
 .eiwyg-led-on {
@@ -397,7 +398,7 @@
 }
 
 .eiwyg-led-label {
-    color: #e2e8f0;
+    color: var(--text-primary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -429,17 +430,17 @@
 }
 
 .eiwyg-gauge-value-text {
-    fill: #f8fafc;
+    fill: var(--text-primary);
     font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
     font-weight: 600;
 }
 
 .eiwyg-gauge-units-text {
-    fill: #94a3b8;
+    fill: var(--text-secondary);
 }
 
 .eiwyg-gauge-minmax-text {
-    fill: #64748b;
+    fill: var(--text-muted);
     font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
 }
 
@@ -454,7 +455,7 @@
 .eiwyg-progress-track {
     width: 100%;
     height: 14px;
-    background-color: #0f172a;
+    background-color: var(--bg-darkest);
     border-radius: 7px;
     overflow: hidden;
     margin-bottom: 6px;
@@ -463,7 +464,7 @@
 .eiwyg-progress-fill {
     height: 100%;
     border-radius: 7px;
-    background-color: #3b82f6;
+    background-color: var(--accent);
     transition: width 0.3s ease, background-color 0.3s ease;
     min-width: 0;
 }
@@ -490,7 +491,7 @@
 .eiwyg-motor-header {
     font-size: 14px;
     font-weight: 600;
-    color: #e2e8f0;
+    color: var(--text-primary);
     margin-bottom: 2px;
     white-space: nowrap;
     overflow: hidden;
@@ -504,7 +505,7 @@
 }
 
 .eiwyg-motor-label {
-    color: #94a3b8;
+    color: var(--text-secondary);
     font-size: 12px;
     min-width: 64px;
     flex-shrink: 0;
@@ -525,15 +526,15 @@
     flex-shrink: 0;
     height: 28px;
     font-weight: 600;
-    background-color: #3b82f6;
-    border-color: #3b82f6;
+    background-color: var(--accent);
+    border-color: var(--accent);
     color: #fff;
     padding: 4px 12px;
 }
 
 .eiwyg-btn-go:hover {
-    background-color: #2563eb;
-    border-color: #2563eb;
+    background-color: var(--accent-hover);
+    border-color: var(--accent-hover);
 }
 
 .eiwyg-motor-jog-row {
@@ -548,8 +549,8 @@
 }
 
 .eiwyg-btn-stop {
-    background-color: #ef4444;
-    border-color: #ef4444;
+    background-color: var(--danger);
+    border-color: var(--danger);
     color: #fff;
     font-weight: 700;
     font-size: 12px;
@@ -558,12 +559,12 @@
 }
 
 .eiwyg-btn-stop:hover {
-    background-color: #dc2626;
-    border-color: #dc2626;
+    background-color: var(--danger-hover, #dc2626);
+    border-color: var(--danger-hover, #dc2626);
 }
 
 .eiwyg-btn-stop:active {
-    background-color: #b91c1c;
+    background-color: var(--danger-hover, #b91c1c);
 }
 
 .eiwyg-motor-status-row {
@@ -572,13 +573,13 @@
 
 .eiwyg-motor-status-dot {
     font-size: 14px;
-    color: #64748b;
+    color: var(--text-muted);
     transition: color 0.2s ease;
 }
 
 .eiwyg-motor-status-text {
     font-size: 12px;
-    color: #94a3b8;
+    color: var(--text-secondary);
     transition: color 0.2s ease;
 }
 
@@ -606,7 +607,7 @@
 .eiwyg-detector-header {
     font-size: 14px;
     font-weight: 600;
-    color: #e2e8f0;
+    color: var(--text-primary);
     margin-bottom: 2px;
     white-space: nowrap;
     overflow: hidden;
@@ -620,7 +621,7 @@
 }
 
 .eiwyg-detector-label {
-    color: #94a3b8;
+    color: var(--text-secondary);
     font-size: 12px;
     min-width: 54px;
     flex-shrink: 0;
@@ -656,4 +657,55 @@
 .eiwyg-plot-wrap canvas {
     width: 100% !important;
     height: 100% !important;
+}
+
+/* ==========================================================================
+   Theme-specific component overrides
+   ========================================================================== */
+
+/* Light and Pastel themes: toggle track needs visible off-state */
+[data-theme="light"] .eiwyg-toggle .toggle-track,
+[data-theme="pastel"] .eiwyg-toggle .toggle-track,
+[data-theme="mondrian"] .eiwyg-toggle .toggle-track {
+    background: var(--border);
+}
+
+/* Light-bg themes: gauge SVG text should use theme text color */
+[data-theme="light"] .eiwyg-gauge svg text,
+[data-theme="pastel"] .eiwyg-gauge svg text {
+    fill: var(--text-primary);
+}
+
+/* Mondrian: sharper borders on components */
+[data-theme="mondrian"] .eiwyg-gauge,
+[data-theme="mondrian"] .eiwyg-motor,
+[data-theme="mondrian"] .eiwyg-detector,
+[data-theme="mondrian"] .eiwyg-plot {
+    border-radius: 0;
+}
+
+/* Mondrian: widgets inherit text colors from color-block backgrounds */
+[data-theme="mondrian"] .eiwyg-widget {
+    background-color: transparent;
+}
+[data-theme="mondrian"] .eiwyg-widget,
+[data-theme="mondrian"] .eiwyg-value,
+[data-theme="mondrian"] .eiwyg-led-label,
+[data-theme="mondrian"] .eiwyg-toggle-label,
+[data-theme="mondrian"] .eiwyg-motor-header,
+[data-theme="mondrian"] .eiwyg-detector-header {
+    color: var(--text-primary);
+}
+[data-theme="mondrian"] .eiwyg-widget-label,
+[data-theme="mondrian"] .eiwyg-units,
+[data-theme="mondrian"] .eiwyg-motor-label,
+[data-theme="mondrian"] .eiwyg-detector-label,
+[data-theme="mondrian"] .eiwyg-motor-status-text {
+    color: var(--text-secondary);
+}
+[data-theme="mondrian"] .eiwyg-input,
+[data-theme="mondrian"] .eiwyg-select {
+    background-color: rgba(0, 0, 0, 0.15);
+    border-color: var(--border);
+    color: var(--text-primary);
 }

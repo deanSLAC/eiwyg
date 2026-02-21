@@ -7,7 +7,10 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request, HTTPExcept
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse
 
-from backend.database import init_db, close_db, save_dashboard, get_dashboard, list_dashboards, get_all_dashboards_with_config
+from backend.database import (
+    init_db, close_db, save_dashboard, get_dashboard, list_dashboards,
+    get_all_dashboards_with_config, get_dashboard_pw, delete_dashboard,
+)
 from backend.models import DashboardCreate, DashboardResponse, ChatRequest, ChatResponse
 from backend.epics_manager import EPICSManager
 from backend.ws_manager import ConnectionManager
@@ -99,7 +102,8 @@ async def api_save_dashboard(dashboard: DashboardCreate):
         title=dashboard.title,
         description=dashboard.description,
         username=dashboard.username,
-        config=dashboard.config.model_dump()
+        config=dashboard.config.model_dump(),
+        pw=dashboard.pw,
     )
     return result
 
@@ -107,6 +111,36 @@ async def api_save_dashboard(dashboard: DashboardCreate):
 @router.get("/api/dashboards")
 async def api_list_dashboards(username: str = None):
     return await list_dashboards(username=username)
+
+
+@router.post("/api/dashboards/verify-pw")
+async def api_verify_pw(request: Request):
+    body = await request.json()
+    slug = body.get("slug", "")
+    pw = body.get("pw", "")
+    stored_pw = await get_dashboard_pw(slug)
+    if stored_pw is None:
+        raise HTTPException(status_code=404, detail="Dashboard not found")
+    return {"valid": stored_pw == pw}
+
+
+@router.get("/api/dashboard-exists/{slug}")
+async def api_dashboard_exists(slug: str):
+    d = await get_dashboard(slug)
+    return {"exists": d is not None}
+
+
+@router.delete("/api/dashboards/{slug}")
+async def api_delete_dashboard(slug: str, request: Request):
+    body = await request.json()
+    pw = body.get("pw", "")
+    stored_pw = await get_dashboard_pw(slug)
+    if stored_pw is None:
+        raise HTTPException(status_code=404, detail="Dashboard not found")
+    if stored_pw != pw:
+        raise HTTPException(status_code=403, detail="Incorrect pw")
+    await delete_dashboard(slug)
+    return {"status": "deleted"}
 
 
 @router.get("/api/dashboards/{slug}")

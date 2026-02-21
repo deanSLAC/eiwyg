@@ -55,6 +55,8 @@ class Widget(BaseModel):
 class DashboardConfig(BaseModel):
     widgets: list[Widget] = []
     columns: int = 12
+    variables: dict[str, str] = {}
+    theme: str = "blue-dream"
 
 
 class DashboardCreate(BaseModel):
@@ -62,6 +64,7 @@ class DashboardCreate(BaseModel):
     title: str = ""
     description: str = ""
     username: str = ""
+    pw: str = ""
     config: DashboardConfig = DashboardConfig()
 
 
@@ -70,6 +73,7 @@ class DashboardResponse(BaseModel):
     title: str
     description: str
     username: str
+    pw: str = ""
     config: DashboardConfig
     created_at: str
     updated_at: str

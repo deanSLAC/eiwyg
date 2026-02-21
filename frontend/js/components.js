@@ -1,4 +1,15 @@
 /**
+ * Replace {VarName} patterns in a PV string with values from the variables dict.
+ * E.g., resolveVariables("IOC:{Beamline}:Temp", {Beamline: "BL15-2"}) => "IOC:BL15-2:Temp"
+ */
+function resolveVariables(pvName, variables) {
+    if (!pvName || !variables) return pvName || '';
+    return pvName.replace(/\{(\w+)\}/g, (match, varName) => {
+        return variables.hasOwnProperty(varName) ? variables[varName] : match;
+    });
+}
+
+/**
  * EIWYG Component Registry and Renderer Library
  *
  * Defines how each widget type is rendered and updated with live PV data.
@@ -112,14 +123,16 @@
             container.classList.add('eiwyg-widget', 'eiwyg-label');
             var label = cfg(widget, 'label', 'Label');
             var fontSize = cfg(widget, 'fontSize', 16);
-            var fontColor = cfg(widget, 'fontColor', '#e2e8f0');
+            var fontColor = cfg(widget, 'fontColor', null);
             var bgColor = cfg(widget, 'backgroundColor', null);
 
             var el = document.createElement('div');
             el.className = 'eiwyg-label-text';
             el.textContent = label;
             el.style.fontSize = fontSize + 'px';
-            el.style.color = fontColor;
+            if (fontColor && fontColor !== '#e2e8f0') {
+                el.style.color = fontColor;
+            }
             if (bgColor) {
                 el.style.backgroundColor = bgColor;
             }
@@ -153,11 +166,12 @@
 
             var label = cfg(widget, 'label', '');
             var fontSize = cfg(widget, 'fontSize', 16);
-            var fontColor = cfg(widget, 'fontColor', '#e2e8f0');
+            var fontColor = cfg(widget, 'fontColor', null);
+            var labelStyle = (fontColor && fontColor !== '#e2e8f0') ? ' style="color:' + fontColor + '"' : '';
 
             var html = '';
             if (label) {
-                html += '<div class="eiwyg-widget-label" style="color:' + fontColor + '">' + label + '</div>';
+                html += '<div class="eiwyg-widget-label"' + labelStyle + '>' + label + '</div>';
             }
             html += '<div class="eiwyg-value" data-role="value" style="font-size:' + (fontSize * 1.5) + 'px">---</div>';
             var units = cfg(widget, 'units', '');
@@ -212,11 +226,12 @@
 
             var label = cfg(widget, 'label', '');
             var fontSize = cfg(widget, 'fontSize', 16);
-            var fontColor = cfg(widget, 'fontColor', '#e2e8f0');
+            var fontColor = cfg(widget, 'fontColor', null);
+            var labelStyle = (fontColor && fontColor !== '#e2e8f0') ? ' style="color:' + fontColor + '"' : '';
 
             var html = '';
             if (label) {
-                html += '<div class="eiwyg-widget-label" style="color:' + fontColor + '">' + label + '</div>';
+                html += '<div class="eiwyg-widget-label"' + labelStyle + '>' + label + '</div>';
             }
             html += '<div class="eiwyg-numeric-row">';
             html += '<span class="eiwyg-value eiwyg-numeric-value" data-role="value" style="font-size:' + (fontSize * 1.5) + 'px">---</span>';
@@ -1062,11 +1077,12 @@
             container.classList.add('eiwyg-widget', 'eiwyg-plot');
 
             var label = cfg(widget, 'label', 'Plot');
-            var fontColor = cfg(widget, 'fontColor', '#e2e8f0');
+            var fontColor = cfg(widget, 'fontColor', null);
+            var labelStyle = (fontColor && fontColor !== '#e2e8f0') ? ' style="color:' + fontColor + '"' : '';
 
             var html = '';
             if (label) {
-                html += '<div class="eiwyg-widget-label" style="color:' + fontColor + '">' + label + '</div>';
+                html += '<div class="eiwyg-widget-label"' + labelStyle + '>' + label + '</div>';
             }
             html += '<div class="eiwyg-plot-wrap" data-role="plot-wrap" style="flex:1;min-height:0;position:relative;">';
             html += '<canvas data-role="plot-canvas"></canvas>';

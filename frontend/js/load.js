@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resultsArea.innerHTML = dashboards.map(d => {
             const created = formatDate(d.created_at);
             return `
-                <div class="dashboard-card">
+                <div class="dashboard-card" data-slug="${escHtml(d.slug)}">
                     <div class="dashboard-card-header">
                         <div>
                             <div class="dashboard-card-title">${escHtml(d.title || d.slug)}</div>
@@ -113,6 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="dashboard-card-actions">
                             <a href="${window.EIWYG_BASE || ''}/editor/${encodeURIComponent(d.slug)}" class="btn-edit">Edit</a>
                             <a href="${window.EIWYG_BASE || ''}/view/${encodeURIComponent(d.slug)}" class="btn-view">View</a>
+                            <button class="btn-delete" data-slug="${escHtml(d.slug)}" data-title="${escHtml(d.title || d.slug)}">Delete</button>
                         </div>
                     </div>
                     ${d.description ? `<div class="dashboard-card-desc">${escHtml(d.description)}</div>` : ''}
@@ -123,6 +124,97 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
         }).join('');
+
+        // Bind delete buttons
+        resultsArea.querySelectorAll('.btn-delete').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const slug = btn.getAttribute('data-slug');
+                const title = btn.getAttribute('data-title');
+                showDeleteModal(slug, title);
+            });
+        });
+    };
+
+    /* ── Delete Modal ─────────────────────────────────────────────── */
+
+    const showDeleteModal = (slug, title) => {
+        closeDeleteModal();
+
+        const overlay = document.createElement('div');
+        overlay.className = 'delete-modal-overlay';
+        overlay.id = 'delete-modal-overlay';
+
+        overlay.innerHTML = `
+            <div class="delete-modal">
+                <h3>Are you sure?</h3>
+                <p>Delete dashboard "<strong>${escHtml(title)}</strong>"?</p>
+                <label>Enter pw to confirm:</label>
+                <input type="text" id="delete-modal-pw" class="delete-modal-input" placeholder="pw">
+                <div id="delete-modal-error" class="delete-modal-error"></div>
+                <div class="delete-modal-actions">
+                    <button class="delete-modal-btn delete-modal-btn-danger" id="delete-modal-confirm">Confirm Delete</button>
+                    <button class="delete-modal-btn delete-modal-btn-cancel" id="delete-modal-cancel">Cancel</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+
+        document.getElementById('delete-modal-confirm').addEventListener('click', async () => {
+            const pw = document.getElementById('delete-modal-pw').value.trim();
+            const errorEl = document.getElementById('delete-modal-error');
+            errorEl.textContent = '';
+
+            try {
+                const resp = await fetch(`${window.EIWYG_BASE || ''}/api/dashboards/${encodeURIComponent(slug)}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pw }),
+                });
+
+                if (resp.ok) {
+                    closeDeleteModal();
+                    // Remove the card from the DOM
+                    const card = resultsArea.querySelector(`.dashboard-card[data-slug="${slug}"]`);
+                    if (card) {
+                        card.style.transition = 'opacity 0.3s';
+                        card.style.opacity = '0';
+                        setTimeout(() => card.remove(), 300);
+                    }
+                    showToast('Dashboard deleted', 'success');
+                } else if (resp.status === 403) {
+                    errorEl.textContent = 'Incorrect pw.';
+                } else {
+                    const err = await resp.json().catch(() => ({}));
+                    errorEl.textContent = err.detail || 'Delete failed.';
+                }
+            } catch (err) {
+                errorEl.textContent = `Error: ${err.message}`;
+            }
+        });
+
+        document.getElementById('delete-modal-cancel').addEventListener('click', closeDeleteModal);
+
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeDeleteModal();
+        });
+    };
+
+    const closeDeleteModal = () => {
+        const overlay = document.getElementById('delete-modal-overlay');
+        if (overlay) overlay.remove();
+    };
+
+    const showToast = (message, type = 'info') => {
+        const toast = document.createElement('div');
+        toast.className = `load-toast ${type}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transition = 'opacity 0.3s';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
     };
 
     const showLoading = () => {
