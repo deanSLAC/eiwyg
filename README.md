@@ -81,7 +81,6 @@ backend/
   ws_manager.py      WebSocket connection manager
   pv_cache.py        Time-series PV value cache with compaction
   models.py          Pydantic request/response models
-  llm.py             LLM integration (disabled, planned for future)
   test_ioc.py        Standalone caproto test IOC
 
 frontend/
