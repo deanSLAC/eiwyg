@@ -52,6 +52,23 @@ html, body {
     position: relative;
 }
 
+/* ── SSRL Logo (hidden by default, shown only for SSRL theme) ─────── */
+
+.ssrl-logo-link {
+    display: none;
+    flex-shrink: 0;
+    align-items: center;
+}
+
+.ssrl-logo-img {
+    height: 32px;
+    width: auto;
+}
+
+[data-theme="ssrl"] .ssrl-logo-link {
+    display: flex;
+}
+
 .view-logo {
     font-size: 18px;
     font-weight: 700;
@@ -636,4 +653,59 @@ html, body {
     --text-primary: #1a1a1a;
     --text-secondary: #333333;
     --text-muted: #555555;
+}
+
+/* ── Theme: SSRL ────────────────────────────────────────────────────── */
+[data-theme="ssrl"] {
+    --bg-darkest: #f9f6ef;
+    --bg-dark: #ffffff;
+    --bg-medium: #f0ece3;
+    --header-bg: #f9f6ef;
+    --footer-bg: #f9f6ef;
+    --border: #d4cfc5;
+    --border-light: #b8b2a6;
+    --text-primary: #1a1a1a;
+    --text-secondary: #3d3d3d;
+    --text-muted: #6b6b6b;
+    --accent: #0072B5;
+    --accent-hover: #005a8b;
+    --accent-glow: rgba(0, 114, 181, 0.25);
+    --success: #28a745;
+    --warning: #d49020;
+    --danger: #8b1a1a;
+    --danger-hover: #6d1414;
+}
+
+/* SSRL: beige header with dark border, matching the reference app */
+[data-theme="ssrl"] .view-top-bar {
+    border-bottom: 2px solid #1a1a1a;
+    backdrop-filter: none;
+}
+[data-theme="ssrl"] .view-status-bar {
+    border-top: 2px solid #1a1a1a;
+    backdrop-filter: none;
+    color: #6b6b6b;
+}
+[data-theme="ssrl"] .view-top-bar .view-title {
+    color: #1a1a1a;
+}
+[data-theme="ssrl"] .view-top-bar .view-logo {
+    color: #0072B5;
+}
+[data-theme="ssrl"] .view-top-bar .view-logo:hover {
+    color: #005a8b;
+}
+[data-theme="ssrl"] .view-top-bar .btn {
+    color: #1a1a1a;
+    background: rgba(0, 0, 0, 0.05);
+    border-color: #d4cfc5;
+}
+[data-theme="ssrl"] .view-top-bar .btn:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+/* SSRL: white widget cards with subtle shadow, matching reference */
+[data-theme="ssrl"] .grid-stack-item-content {
+    border-color: #e9ecef;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
 }

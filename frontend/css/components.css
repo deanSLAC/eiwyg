@@ -666,13 +666,15 @@
 /* Light and Pastel themes: toggle track needs visible off-state */
 [data-theme="light"] .eiwyg-toggle .toggle-track,
 [data-theme="pastel"] .eiwyg-toggle .toggle-track,
-[data-theme="mondrian"] .eiwyg-toggle .toggle-track {
+[data-theme="mondrian"] .eiwyg-toggle .toggle-track,
+[data-theme="ssrl"] .eiwyg-toggle .toggle-track {
     background: var(--border);
 }
 
 /* Light-bg themes: gauge SVG text should use theme text color */
 [data-theme="light"] .eiwyg-gauge svg text,
-[data-theme="pastel"] .eiwyg-gauge svg text {
+[data-theme="pastel"] .eiwyg-gauge svg text,
+[data-theme="ssrl"] .eiwyg-gauge svg text {
     fill: var(--text-primary);
 }
 
