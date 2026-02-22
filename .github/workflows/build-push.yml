@@ -18,9 +18,8 @@ jobs:
     steps:
       - name: Checkout
         run: |
-          git clone --depth=0 https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git .
+          git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git .
           git checkout ${{ github.sha }}
-          git fetch --tags
 
       - name: Determine next version
         id: version
