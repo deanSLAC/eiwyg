@@ -709,3 +709,79 @@ html, body {
     border-color: #e9ecef;
     box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
 }
+
+/* ── Theme: Vintage (EDM/Motif) ──────────────────────────────────────── */
+[data-theme="vintage"] {
+    --bg-darkest: #a0a0a0;
+    --bg-dark: #c0c0c0;
+    --bg-medium: #d4d4d4;
+    --header-bg: #c0a870;
+    --footer-bg: #c0a870;
+    --border: #606060;
+    --border-light: #e0e0e0;
+    --text-primary: #000000;
+    --text-secondary: #000080;
+    --text-muted: #404040;
+    --accent: #0000c0;
+    --accent-hover: #0000ff;
+    --accent-glow: rgba(0, 0, 192, 0.3);
+    --success: #00c000;
+    --warning: #c0c000;
+    --danger: #c00000;
+    --danger-hover: #ff0000;
+    --font-sans: 'Courier New', 'Courier', monospace;
+    --font-mono: 'Courier New', 'Courier', monospace;
+}
+
+/* Vintage: solid dark gray header/footer, no blur, Motif-style borders */
+[data-theme="vintage"] .view-top-bar {
+    border-bottom: 2px solid #404040;
+    border-top: 2px solid #e0e0e0;
+    backdrop-filter: none;
+    color: #2050d0;
+}
+[data-theme="vintage"] .view-status-bar {
+    border-top: 2px solid #e0e0e0;
+    border-bottom: 2px solid #404040;
+    backdrop-filter: none;
+    color: #2050d0;
+}
+[data-theme="vintage"] .view-top-bar .view-title {
+    color: #2050d0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+[data-theme="vintage"] .view-top-bar .view-logo {
+    color: #2050d0;
+    text-transform: uppercase;
+}
+[data-theme="vintage"] .view-top-bar .view-logo:hover {
+    color: #3068e0;
+}
+[data-theme="vintage"] .view-top-bar .btn {
+    color: #000000;
+    background: #c0c0c0;
+    border: 2px outset #c0c0c0;
+    border-radius: 0;
+}
+[data-theme="vintage"] .view-top-bar .btn:hover {
+    background: #d4d4d4;
+}
+[data-theme="vintage"] .view-top-bar .btn:active {
+    border-style: inset;
+}
+
+/* Vintage: square widgets with Motif-style 3D inset borders */
+[data-theme="vintage"] .grid-stack-item-content {
+    border: 2px inset #c0c0c0;
+    border-radius: 0;
+    box-shadow: none;
+}
+[data-theme="vintage"] .widget-inner {
+    border-radius: 0;
+}
+
+/* Vintage: green monospace values */
+[data-theme="vintage"] .widget-value {
+    color: #00c000;
+}
