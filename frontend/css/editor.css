@@ -564,6 +564,14 @@ html, body {
 .variables-header .field-tooltip {
     margin-left: 0;
 }
+.variables-header .field-tooltip:hover::after {
+    top: auto;
+    bottom: 100%;
+    left: 0;
+    transform: none;
+    margin-top: 0;
+    margin-bottom: 6px;
+}
 .variables-toggle {
     font-size: 10px;
     transition: transform 0.2s;
