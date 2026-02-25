@@ -1096,7 +1096,7 @@ function resolveVariables(pvName, variables) {
                 historyLoaded: false,
                 maxPoints: cfg(widget, 'maxPoints', 500),
                 timeWindow: cfg(widget, 'timeWindow', 3600) * 1000, // store in ms
-                lineColor: cfg(widget, 'lineColor', '#3b82f6'),
+                lineColor: cfg(widget, 'lineColor', _plotDefaultLineColor()),
                 fillArea: cfg(widget, 'fillArea', false),
                 yMin: cfg(widget, 'yMin', null),
                 yMax: cfg(widget, 'yMax', null),
@@ -1119,7 +1119,7 @@ function resolveVariables(pvName, variables) {
             // Refresh config in case it changed
             state.maxPoints = cfg(widget, 'maxPoints', 500);
             state.timeWindow = cfg(widget, 'timeWindow', 3600) * 1000;
-            state.lineColor = cfg(widget, 'lineColor', '#3b82f6');
+            state.lineColor = cfg(widget, 'lineColor', _plotDefaultLineColor());
             state.fillArea = cfg(widget, 'fillArea', false);
             state.yMin = cfg(widget, 'yMin', null);
             state.yMax = cfg(widget, 'yMax', null);
@@ -1172,6 +1172,12 @@ function resolveVariables(pvName, variables) {
     });
 
     // -- Plot helpers ---------------------------------------------------------
+
+    function _plotDefaultLineColor() {
+        var theme = document.documentElement.getAttribute('data-theme');
+        if (theme === 'phoebe') return '#00c000';
+        return '#3b82f6';
+    }
 
     function _plotFetchHistory(container, widget) {
         var state = container._plotState;
