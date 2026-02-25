@@ -56,6 +56,7 @@ def _serve_html(filename: str) -> HTMLResponse:
         content = content.replace('href="/"', f'href="{BASE_PATH}/"')
         content = content.replace('href="/editor"', f'href="{BASE_PATH}/editor"')
         content = content.replace('href="/load"', f'href="{BASE_PATH}/load"')
+        content = content.replace('href="/view/', f'href="{BASE_PATH}/view/')
     return HTMLResponse(content)
 
 
