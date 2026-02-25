@@ -20,6 +20,7 @@ class DashboardViewer {
         this.reconnectTimer = null;
         this.componentsReady = false;
         this.variables = {};         // Dashboard template variables
+        this.writeMode = false;      // Read/write mode for PV puts
     }
 
     /**
@@ -44,6 +45,16 @@ class DashboardViewer {
         const editBtn = document.getElementById('edit-btn');
         if (editBtn) {
             editBtn.href = `${window.EIWYG_BASE || ''}/editor/${encodeURIComponent(this.slug)}`;
+        }
+
+        // Bind mode switch segments
+        const readOpt = document.getElementById('mode-opt-read');
+        const writeOpt = document.getElementById('mode-opt-write');
+        if (readOpt) {
+            readOpt.addEventListener('click', () => { if (this.writeMode) this._setMode(false); });
+        }
+        if (writeOpt) {
+            writeOpt.addEventListener('click', () => { if (!this.writeMode) this._showPwModal(); });
         }
 
         // Wait for components.js to register EIWYG_COMPONENTS
@@ -167,7 +178,10 @@ class DashboardViewer {
         const loadingEl = document.getElementById('view-loading');
         const gridWrapper = document.getElementById('view-grid-wrapper');
         if (loadingEl) loadingEl.style.display = 'none';
-        if (gridWrapper) gridWrapper.style.display = '';
+        if (gridWrapper) {
+            gridWrapper.style.display = '';
+            gridWrapper.setAttribute('data-mode', 'read');
+        }
 
         // Apply theme (set on html element so it overrides :root variables)
         document.documentElement.setAttribute('data-theme', this.theme);
@@ -438,6 +452,11 @@ class DashboardViewer {
      * Used by interactive widgets like numeric-input, slider, toggle, etc.
      */
     handlePut(pv, value) {
+        if (!this.writeMode) {
+            console.warn('Cannot put PV -- dashboard is in read mode');
+            return;
+        }
+
         if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
             console.warn('Cannot put PV -- WebSocket is not connected');
             return;
@@ -448,6 +467,112 @@ class DashboardViewer {
             pv: pv,
             value: value,
         }));
+    }
+
+    /**
+     * Set the dashboard mode (read or write) and update UI accordingly.
+     */
+    _setMode(write) {
+        this.writeMode = write;
+
+        const modeSwitch = document.getElementById('mode-switch');
+        const readOpt = document.getElementById('mode-opt-read');
+        const writeOpt = document.getElementById('mode-opt-write');
+        const wrapper = document.getElementById('view-grid-wrapper');
+        const statusMode = document.getElementById('status-mode');
+
+        if (readOpt && writeOpt && modeSwitch) {
+            readOpt.classList.toggle('mode-active', !write);
+            writeOpt.classList.toggle('mode-active', write);
+            modeSwitch.classList.toggle('mode-write-active', write);
+            modeSwitch.title = write
+                ? 'Currently in Write Mode'
+                : 'Currently in Read Mode';
+        }
+        if (wrapper) {
+            wrapper.setAttribute('data-mode', write ? 'write' : 'read');
+        }
+        if (statusMode) {
+            statusMode.textContent = write ? 'Mode: Write' : 'Mode: Read';
+        }
+    }
+
+    /**
+     * Show a modal prompting for the lock phrase to enter write mode.
+     */
+    _showPwModal() {
+        this._closePwModal();
+
+        const overlay = document.createElement('div');
+        overlay.className = 'pw-modal-overlay';
+        overlay.id = 'pw-modal-overlay';
+
+        overlay.innerHTML = `
+            <div class="pw-modal">
+                <h3>Enter Write Mode</h3>
+                <p>Enter the lock phrase to enable PV writes on this dashboard.</p>
+                <label>Lock phrase:</label>
+                <input type="text" id="pw-modal-input" class="pw-modal-input" placeholder="pw" autocomplete="off">
+                <div id="pw-modal-error" class="pw-modal-error"></div>
+                <div class="pw-modal-actions">
+                    <button class="pw-modal-btn pw-modal-btn-confirm" id="pw-modal-confirm">Unlock</button>
+                    <button class="pw-modal-btn pw-modal-btn-cancel" id="pw-modal-cancel">Cancel</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+
+        const inputEl = document.getElementById('pw-modal-input');
+        const errorEl = document.getElementById('pw-modal-error');
+
+        const doVerify = async () => {
+            const pw = inputEl.value;
+            errorEl.textContent = '';
+
+            try {
+                const resp = await fetch(`${window.EIWYG_BASE || ''}/api/dashboards/verify-pw`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ slug: this.slug, pw }),
+                });
+
+                if (!resp.ok) {
+                    errorEl.textContent = 'Failed to verify lock phrase.';
+                    return;
+                }
+
+                const result = await resp.json();
+                if (result.valid) {
+                    this._closePwModal();
+                    this._setMode(true);
+                } else {
+                    errorEl.textContent = 'Incorrect lock phrase.';
+                }
+            } catch (err) {
+                errorEl.textContent = `Error: ${err.message}`;
+            }
+        };
+
+        document.getElementById('pw-modal-confirm').addEventListener('click', doVerify);
+        inputEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') doVerify();
+        });
+        document.getElementById('pw-modal-cancel').addEventListener('click', () => this._closePwModal());
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) this._closePwModal();
+        });
+
+        // Focus the input
+        inputEl.focus();
+    }
+
+    /**
+     * Close the pw modal if open.
+     */
+    _closePwModal() {
+        const overlay = document.getElementById('pw-modal-overlay');
+        if (overlay) overlay.remove();
     }
 
     /**

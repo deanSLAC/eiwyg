@@ -23,6 +23,10 @@
         <a href="/" class="view-logo">EIWYG</a>
         <span class="view-title" id="dashboard-title">Loading...</span>
         <div class="view-actions">
+            <div class="mode-switch" id="mode-switch" title="Currently in Read Mode">
+                <span class="mode-switch-option mode-active" id="mode-opt-read">Read</span>
+                <span class="mode-switch-option" id="mode-opt-write">Write</span>
+            </div>
             <a id="edit-btn" href="#" class="btn btn-sm">Edit</a>
         </div>
     </header>
@@ -51,6 +55,7 @@
 
     <!-- Status Bar -->
     <footer class="view-status-bar">
+        <span class="view-status-mode" id="status-mode">Mode: Read</span>
         <span class="view-status-updated" id="status-updated">Last updated: --</span>
         <span class="view-status-connection" id="status-connection">
             <span class="connection-dot disconnected" id="connection-dot"></span>

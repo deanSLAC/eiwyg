@@ -427,6 +427,174 @@ html, body {
     }
 }
 
+/* ── Mode Switch (segmented toggle) ──────────────────────────────── */
+
+.mode-switch {
+    display: inline-flex;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    font-size: 12px;
+    font-family: var(--font-sans);
+    flex-shrink: 0;
+    cursor: default;
+}
+
+.mode-switch-option {
+    padding: 4px 10px;
+    color: var(--text-muted);
+    background: var(--bg-dark);
+    transition: all 0.15s;
+    user-select: none;
+    line-height: 1;
+}
+
+.mode-switch-option:not(.mode-active) {
+    cursor: pointer;
+}
+
+.mode-switch-option:not(.mode-active):hover {
+    color: var(--text-secondary);
+    background: var(--bg-medium);
+}
+
+.mode-switch-option.mode-active {
+    color: var(--text-primary);
+    background: var(--bg-medium);
+    font-weight: 600;
+}
+
+.mode-switch.mode-write-active .mode-active {
+    background: var(--success);
+    color: #fff;
+}
+
+/* ── Read Mode: Disable Interactive Widget Controls ──────────────── */
+
+.view-grid-wrapper[data-mode="read"] input,
+.view-grid-wrapper[data-mode="read"] select,
+.view-grid-wrapper[data-mode="read"] input[type="range"],
+.view-grid-wrapper[data-mode="read"] .toggle-switch,
+.view-grid-wrapper[data-mode="read"] .motor-go-btn,
+.view-grid-wrapper[data-mode="read"] .motor-jog-btn,
+.view-grid-wrapper[data-mode="read"] .motor-stop-btn,
+.view-grid-wrapper[data-mode="read"] .numeric-btn,
+.view-grid-wrapper[data-mode="read"] .string-set-btn,
+.view-grid-wrapper[data-mode="read"] .enum-select {
+    pointer-events: none;
+    opacity: 0.45;
+}
+
+/* ── Status Bar Mode Indicator ───────────────────────────────────── */
+
+.view-status-mode {
+    font-size: 11px;
+    font-family: var(--font-mono);
+}
+
+/* ── PW Modal ────────────────────────────────────────────────────── */
+
+.pw-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.pw-modal {
+    background: var(--bg-dark);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    width: 380px;
+    max-width: 90vw;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+
+.pw-modal h3 {
+    margin: 0 0 12px;
+    font-size: 16px;
+    color: var(--text-primary);
+}
+
+.pw-modal p {
+    margin: 0 0 16px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.pw-modal label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.pw-modal-input {
+    width: 100%;
+    background: var(--bg-darkest);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    color: var(--text-primary);
+    padding: 8px 12px;
+    font-size: 13px;
+    font-family: var(--font-mono);
+    outline: none;
+}
+
+.pw-modal-input:focus {
+    border-color: var(--accent);
+}
+
+.pw-modal-error {
+    color: var(--danger);
+    font-size: 12px;
+    margin-top: 4px;
+    min-height: 16px;
+}
+
+.pw-modal-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.pw-modal-btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    border: 1px solid var(--border);
+    transition: all 0.15s;
+}
+
+.pw-modal-btn-confirm {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+}
+
+.pw-modal-btn-confirm:hover {
+    background: var(--accent-hover);
+}
+
+.pw-modal-btn-cancel {
+    background: var(--bg-medium);
+    color: var(--text-primary);
+}
+
+.pw-modal-btn-cancel:hover {
+    background: var(--border);
+}
+
 /* ══════════════════════════════════════════════════════════════════════
    Color Themes
    Theme overrides for the view page. Each theme redefines the CSS
