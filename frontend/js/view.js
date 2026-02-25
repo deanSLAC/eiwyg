@@ -171,6 +171,30 @@ class DashboardViewer {
 
         // Apply theme (set on html element so it overrides :root variables)
         document.documentElement.setAttribute('data-theme', this.theme);
+
+        // TV static animation for Vintage theme
+        if (this.theme === 'vintage') {
+            const canvas = document.getElementById('tv-static-overlay');
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                const drawNoise = () => {
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                    const imageData = ctx.createImageData(canvas.width, canvas.height);
+                    const data = imageData.data;
+                    for (let i = 0; i < data.length; i += 4) {
+                        const v = Math.random() * 255;
+                        data[i] = v;
+                        data[i + 1] = v;
+                        data[i + 2] = v;
+                        data[i + 3] = 255;
+                    }
+                    ctx.putImageData(imageData, 0, 0);
+                };
+                setInterval(drawNoise, 120);
+                window.addEventListener('resize', drawNoise);
+            }
+        }
     }
 
     /**

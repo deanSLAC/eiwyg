@@ -785,3 +785,16 @@ html, body {
 [data-theme="vintage"] .widget-value {
     color: #00c000;
 }
+
+/* TV static overlay - hidden by default, shown for Vintage theme */
+#tv-static-overlay {
+    display: none;
+}
+[data-theme="vintage"] #tv-static-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0.08;
+}
