@@ -643,6 +643,12 @@ class EditorApp {
                         <span id="cfg-fontColor-hex" style="font-size:12px;font-family:var(--font-mono);color:var(--text-muted);">${widget.config.fontColor || '#e2e8f0'}</span>
                     </div>
                 </div>
+                <div class="config-field">
+                    <div class="config-field-row">
+                        <input type="checkbox" id="cfg-flashOnUpdate" ${widget.config.flashOnUpdate ? 'checked' : ''}>
+                        <label for="cfg-flashOnUpdate">Flash on Update</label>
+                    </div>
+                </div>
             </div>
         `;
 
@@ -914,6 +920,11 @@ class EditorApp {
             const hexSpan = document.getElementById('cfg-fontColor-hex');
             if (hexSpan) hexSpan.textContent = e.target.value;
             this.updateWidgetConfig(id, { config: { fontColor: e.target.value } });
+        });
+
+        // Flash on update
+        bindChange('cfg-flashOnUpdate', (e) => {
+            this.updateWidgetConfig(id, { config: { flashOnUpdate: e.target.checked } });
         });
 
         // Numeric fields

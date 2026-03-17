@@ -439,11 +439,13 @@ class DashboardViewer {
                 }
             }
 
-            // Brief flash animation on update
-            el.classList.remove('widget-pv-flash');
-            // Force reflow to restart the animation
-            void el.offsetWidth;
-            el.classList.add('widget-pv-flash');
+            // Brief flash animation on update (unless disabled)
+            if (widget.config?.flashOnUpdate) {
+                el.classList.remove('widget-pv-flash');
+                // Force reflow to restart the animation
+                void el.offsetWidth;
+                el.classList.add('widget-pv-flash');
+            }
         }
     }
 

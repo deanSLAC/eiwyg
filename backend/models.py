@@ -29,6 +29,8 @@ class WidgetConfig(BaseModel):
     # LED specific
     onColor: Optional[str] = "#22c55e"
     offColor: Optional[str] = "#64748b"
+    # Common visual
+    flashOnUpdate: Optional[bool] = False
     # Gauge specific
     minValue: Optional[float] = 0.0
     maxValue: Optional[float] = 100.0
