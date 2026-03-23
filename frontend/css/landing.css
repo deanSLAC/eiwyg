@@ -550,6 +550,115 @@ body {
     background: var(--border-light);
 }
 
+/* ── Install Section ──────────────────────────────────────────────── */
+
+.install-terminal {
+    max-width: 680px;
+    margin: 0 auto 24px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    background: var(--bg-darkest);
+}
+
+.install-terminal-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    background: var(--bg-medium);
+    border-bottom: 1px solid var(--border);
+}
+
+.install-terminal-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-left: 8px;
+}
+
+.install-terminal-body {
+    padding: 20px 24px;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+.install-step {
+    margin-bottom: 12px;
+}
+
+.install-step:last-child {
+    margin-bottom: 0;
+}
+
+.install-step-comment {
+    display: block;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+.install-step-cmd {
+    display: block;
+    color: var(--text-primary);
+}
+
+.install-prompt {
+    color: var(--success);
+    margin-right: 8px;
+    user-select: none;
+}
+
+.install-note {
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    max-width: 680px;
+    margin: 0 auto 20px;
+}
+
+.install-note code {
+    background: var(--bg-medium);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--accent);
+}
+
+.install-details {
+    max-width: 680px;
+    margin: 0 auto;
+}
+
+.install-details-summary {
+    cursor: pointer;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    padding: 8px;
+    transition: color 0.15s;
+}
+
+.install-details-summary:hover {
+    color: var(--accent);
+}
+
+.install-details-body {
+    padding-top: 16px;
+}
+
+.install-details-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+}
+
+.install-terminal-small .install-terminal-body {
+    padding: 14px 24px;
+}
+
 /* ── Responsive ────────────────────────────────────────────────────── */
 
 @media (max-width: 900px) {
@@ -620,6 +729,11 @@ body {
 
     .preview-widget.span-2 {
         grid-column: span 1;
+    }
+
+    .install-terminal-body {
+        padding: 16px 14px;
+        font-size: 12px;
     }
 
     .showcase-grid {

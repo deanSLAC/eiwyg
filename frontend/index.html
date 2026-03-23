@@ -15,6 +15,7 @@
         <a href="/editor" class="nav-btn-primary">New Dashboard</a>
         <a href="/load">Load</a>
         <a href="#features">Features</a>
+        <a href="#install">Install</a>
     </div>
 </nav>
 
@@ -149,6 +150,71 @@
                 </div>
             </div>
         </div>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- ── How to Install ─────────────────────────────────────────────── -->
+    <section id="install" class="landing-section fade-in">
+        <h2 class="section-title">Get Started in 3 Commands</h2>
+        <div class="install-terminal">
+            <div class="install-terminal-bar">
+                <div class="preview-titlebar-dots">
+                    <span class="preview-titlebar-dot red"></span>
+                    <span class="preview-titlebar-dot yellow"></span>
+                    <span class="preview-titlebar-dot green"></span>
+                </div>
+                <span class="install-terminal-title">Terminal</span>
+            </div>
+            <div class="install-terminal-body">
+                <div class="install-step">
+                    <span class="install-step-comment"># Clone the repo</span>
+                    <span class="install-step-cmd"><span class="install-prompt">$</span> git clone git@github.com:deanSLAC/eiwyg.git &amp;&amp; cd eiwyg</span>
+                </div>
+                <div class="install-step">
+                    <span class="install-step-comment"># Start the server (auto-creates venv, installs deps)</span>
+                    <span class="install-step-cmd"><span class="install-prompt">$</span> ./run.sh</span>
+                </div>
+                <div class="install-step">
+                    <span class="install-step-comment"># Open your browser</span>
+                    <span class="install-step-cmd"><span class="install-prompt">$</span> open http://localhost:8080</span>
+                </div>
+            </div>
+        </div>
+        <p class="install-note">
+            Requires Python 3.10+. Runs in simulated EPICS mode by default &mdash; no IOCs needed.
+        </p>
+        <details class="install-details">
+            <summary class="install-details-summary">Connecting to real EPICS &amp; more</summary>
+            <div class="install-details-body">
+                <p class="install-details-label">Connect to real EPICS PVs:</p>
+                <div class="install-terminal install-terminal-small">
+                    <div class="install-terminal-body">
+                        <div class="install-step">
+                            <span class="install-step-comment"># Copy the example config and edit it</span>
+                            <span class="install-step-cmd"><span class="install-prompt">$</span> cp .env.example .env</span>
+                        </div>
+                        <div class="install-step">
+                            <span class="install-step-comment"># Set EIWYG_SIM_MODE=false in .env, then restart</span>
+                            <span class="install-step-cmd"><span class="install-prompt">$</span> ./run.sh</span>
+                        </div>
+                    </div>
+                </div>
+                <p class="install-note">Requires caproto and access to running IOCs on your network.</p>
+
+                <p class="install-details-label">Docker:</p>
+                <div class="install-terminal install-terminal-small">
+                    <div class="install-terminal-body">
+                        <span class="install-step-cmd"><span class="install-prompt">$</span> docker build -t eiwyg . &amp;&amp; docker run -p 8080:8080 eiwyg</span>
+                    </div>
+                </div>
+
+                <p class="install-note" style="margin-top: 16px;">
+                    Other <code>.env</code> options: PostgreSQL backend, LLM-powered features, subpath deployment.
+                    See <code>.env.example</code> for details.
+                </p>
+            </div>
+        </details>
     </section>
 
     <hr class="section-divider">
