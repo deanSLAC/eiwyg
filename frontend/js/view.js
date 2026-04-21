@@ -271,6 +271,12 @@ class DashboardViewer {
                     this.handlePut(pv, value);
                 }
             });
+            itemContent.addEventListener('config-update', (e) => {
+                const { widgetId, patch } = e.detail || {};
+                if (widgetId && patch && typeof patch === 'object') {
+                    this.patchWidgetConfig(widgetId, patch);
+                }
+            });
         }
     }
 
@@ -469,6 +475,25 @@ class DashboardViewer {
             pv: pv,
             value: value,
         }));
+    }
+
+    /**
+     * Persist a partial config patch for a widget to the backend.
+     */
+    async patchWidgetConfig(widgetId, patch) {
+        try {
+            const url = `${window.EIWYG_BASE || ''}/api/dashboards/${encodeURIComponent(this.slug)}/widgets/${encodeURIComponent(widgetId)}/config`;
+            const resp = await fetch(url, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(patch),
+            });
+            if (!resp.ok) {
+                console.error(`Failed to patch widget config (${resp.status})`);
+            }
+        } catch (err) {
+            console.error('Failed to patch widget config:', err);
+        }
     }
 
     /**

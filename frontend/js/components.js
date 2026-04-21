@@ -87,6 +87,17 @@ function resolveVariables(pvName, variables) {
     }
 
     /**
+     * Dispatch a config-update custom event. `patch` is a partial object that
+     * will be merged into the widget's config on the server.
+     */
+    function dispatchConfigUpdate(container, widgetId, patch) {
+        container.dispatchEvent(new CustomEvent('config-update', {
+            detail: { widgetId: widgetId, patch: patch },
+            bubbles: true
+        }));
+    }
+
+    /**
      * Get a config value with a fallback default.
      */
     function cfg(widget, key, fallback) {
@@ -830,14 +841,30 @@ function resolveVariables(pvName, variables) {
             html += '<button class="eiwyg-btn eiwyg-btn-go" data-role="go">Go</button>';
             html += '</div>';
 
-            // Jog + Stop
-            html += '<div class="eiwyg-motor-row eiwyg-motor-jog-row">';
-            html += '<button class="eiwyg-btn eiwyg-btn-jog" data-role="jog-neg">&#9664; Jog</button>';
+            // Step + Stop
+            html += '<div class="eiwyg-motor-row eiwyg-motor-step-row">';
+            html += '<button class="eiwyg-btn eiwyg-btn-step" data-role="step-neg">&#9664; Step</button>';
             if (showStop) {
                 html += '<button class="eiwyg-btn eiwyg-btn-stop" data-role="stop">STOP</button>';
             }
-            html += '<button class="eiwyg-btn eiwyg-btn-jog" data-role="jog-pos">Jog &#9654;</button>';
+            html += '<button class="eiwyg-btn eiwyg-btn-step" data-role="step-pos">Step &#9654;</button>';
             html += '</div>';
+
+            // Store / Return row
+            html += '<div class="eiwyg-motor-row eiwyg-motor-store-row">';
+            html += '<button class="eiwyg-btn eiwyg-motor-store-btn" data-role="store-btn">Store As&hellip;</button>';
+            html += '<button class="eiwyg-btn eiwyg-motor-return-btn" data-role="return-btn">Return to&hellip;</button>';
+            html += '</div>';
+
+            // Store panel (hidden by default)
+            html += '<div class="eiwyg-motor-panel" data-role="store-panel" hidden>';
+            html += '<input type="text" class="eiwyg-input eiwyg-motor-store-name" data-role="store-name" maxlength="20" placeholder="Position name">';
+            html += '<button class="eiwyg-btn eiwyg-btn-go" data-role="store-save">Save</button>';
+            html += '<button class="eiwyg-btn" data-role="store-cancel">Cancel</button>';
+            html += '</div>';
+
+            // Return panel (hidden by default)
+            html += '<div class="eiwyg-motor-panel eiwyg-motor-return-panel" data-role="return-panel" hidden></div>';
 
             // Status
             html += '<div class="eiwyg-motor-row eiwyg-motor-status-row">';
@@ -857,11 +884,60 @@ function resolveVariables(pvName, variables) {
 
             var setpointInput = container.querySelector('[data-role="setpoint-input"]');
             var goBtn = container.querySelector('[data-role="go"]');
-            var jogNeg = container.querySelector('[data-role="jog-neg"]');
-            var jogPos = container.querySelector('[data-role="jog-pos"]');
+            var stepNeg = container.querySelector('[data-role="step-neg"]');
+            var stepPos = container.querySelector('[data-role="step-pos"]');
             var stopBtn = container.querySelector('[data-role="stop"]');
-            var step = cfg(widget, 'step', 1);
+            var storeBtn = container.querySelector('[data-role="store-btn"]');
+            var returnBtn = container.querySelector('[data-role="return-btn"]');
+            var storePanel = container.querySelector('[data-role="store-panel"]');
+            var returnPanel = container.querySelector('[data-role="return-panel"]');
+            var storeName = container.querySelector('[data-role="store-name"]');
+            var storeSave = container.querySelector('[data-role="store-save"]');
+            var storeCancel = container.querySelector('[data-role="store-cancel"]');
             var basePv = widget.pv || '';
+
+            function getStep() {
+                return cfg(widget, 'step', 1);
+            }
+
+            // Ensure widget.config exists so we can mutate storedPositions.
+            if (!widget.config) widget.config = {};
+
+            function getStoredPositions() {
+                if (!Array.isArray(widget.config.storedPositions)) {
+                    widget.config.storedPositions = [];
+                }
+                return widget.config.storedPositions;
+            }
+
+            function hideStorePanel() {
+                storePanel.hidden = true;
+                storeName.value = '';
+            }
+            function hideReturnPanel() {
+                returnPanel.hidden = true;
+            }
+
+            function renderReturnList() {
+                var positions = getStoredPositions();
+                if (positions.length === 0) {
+                    returnPanel.innerHTML = '<div class="eiwyg-motor-return-empty">No stored positions</div>';
+                    return;
+                }
+                var listHtml = '';
+                for (var i = 0; i < positions.length; i++) {
+                    var p = positions[i];
+                    var safeName = p.name.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                    listHtml +=
+                        '<div class="eiwyg-motor-return-item" data-index="' + i + '">' +
+                            '<button class="eiwyg-motor-return-name" data-role="return-pick" data-index="' + i + '">' +
+                                safeName + ' <span class="eiwyg-motor-return-value">' + formatValue(p.value, precision) + '</span>' +
+                            '</button>' +
+                            '<button class="eiwyg-motor-return-del" data-role="return-del" data-index="' + i + '" title="Delete">&times;</button>' +
+                        '</div>';
+                }
+                returnPanel.innerHTML = listHtml;
+            }
 
             // Go button
             goBtn.addEventListener('click', function () {
@@ -880,15 +956,17 @@ function resolveVariables(pvName, variables) {
                 }
             });
 
-            // Jog buttons
-            jogNeg.addEventListener('click', function () {
-                var newVal = container._motorState.val - step;
-                dispatchPvPut(container, basePv + ':VAL', newVal);
+            // Step buttons — compute from current readback
+            stepNeg.addEventListener('click', function () {
+                var s = parseFloat(getStep());
+                if (isNaN(s) || s === 0) return;
+                dispatchPvPut(container, basePv + ':VAL', container._motorState.rbv - s);
             });
 
-            jogPos.addEventListener('click', function () {
-                var newVal = container._motorState.val + step;
-                dispatchPvPut(container, basePv + ':VAL', newVal);
+            stepPos.addEventListener('click', function () {
+                var s = parseFloat(getStep());
+                if (isNaN(s) || s === 0) return;
+                dispatchPvPut(container, basePv + ':VAL', container._motorState.rbv + s);
             });
 
             // Stop button
@@ -897,6 +975,77 @@ function resolveVariables(pvName, variables) {
                     dispatchPvPut(container, basePv + ':VAL', container._motorState.rbv);
                 });
             }
+
+            // Store As… toggle
+            storeBtn.addEventListener('click', function () {
+                if (!storePanel.hidden) {
+                    hideStorePanel();
+                    return;
+                }
+                hideReturnPanel();
+                storePanel.hidden = false;
+                storeName.focus();
+            });
+
+            storeSave.addEventListener('click', function () { saveStore(); });
+            storeCancel.addEventListener('click', function () { hideStorePanel(); });
+            storeName.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') saveStore();
+                else if (e.key === 'Escape') hideStorePanel();
+            });
+
+            function saveStore() {
+                var name = storeName.value.trim().slice(0, 20);
+                if (!name) return;
+                var positions = getStoredPositions();
+                var existing = -1;
+                for (var i = 0; i < positions.length; i++) {
+                    if (positions[i].name === name) { existing = i; break; }
+                }
+                var entry = { name: name, value: container._motorState.val };
+                if (existing >= 0) {
+                    positions[existing] = entry;
+                } else {
+                    positions.push(entry);
+                }
+                dispatchConfigUpdate(container, widget.id, { storedPositions: positions });
+                hideStorePanel();
+            }
+
+            // Return to… toggle
+            returnBtn.addEventListener('click', function () {
+                if (!returnPanel.hidden) {
+                    hideReturnPanel();
+                    return;
+                }
+                hideStorePanel();
+                renderReturnList();
+                returnPanel.hidden = false;
+            });
+
+            // Event delegation inside the return panel.
+            returnPanel.addEventListener('click', function (e) {
+                var delBtn = e.target.closest('[data-role="return-del"]');
+                if (delBtn) {
+                    var idx = parseInt(delBtn.getAttribute('data-index'), 10);
+                    var positions = getStoredPositions();
+                    if (idx >= 0 && idx < positions.length) {
+                        positions.splice(idx, 1);
+                        dispatchConfigUpdate(container, widget.id, { storedPositions: positions });
+                        renderReturnList();
+                    }
+                    return;
+                }
+                var pickBtn = e.target.closest('[data-role="return-pick"]');
+                if (pickBtn) {
+                    var pIdx = parseInt(pickBtn.getAttribute('data-index'), 10);
+                    var positions2 = getStoredPositions();
+                    if (pIdx >= 0 && pIdx < positions2.length) {
+                        setpointInput.value = formatValue(positions2[pIdx].value, precision);
+                        hideReturnPanel();
+                    }
+                }
+            });
         },
 
         update: function (container, widget, pvName, pvData) {
@@ -945,12 +1094,12 @@ function resolveVariables(pvName, variables) {
             { key: 'label', type: 'text', label: 'Label' },
             { key: 'fontSize', type: 'number', label: 'Font Size' },
             { key: 'units', type: 'text', label: 'Units' },
-            { key: 'step', type: 'number', label: 'Jog Step' },
+            { key: 'step', type: 'number', label: 'Step Size' },
             { key: 'precision', type: 'number', label: 'Precision' },
             { key: 'showStop', type: 'checkbox', label: 'Show STOP Button' }
         ],
 
-        defaultSize: { w: 4, h: 4 }
+        defaultSize: { w: 4, h: 6 }
     });
 
     // -------------------------------------------------------------------------

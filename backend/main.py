@@ -10,6 +10,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from backend.database import (
     init_db, close_db, save_dashboard, get_dashboard, list_dashboards,
     get_all_dashboards_with_config, get_dashboard_pw, delete_dashboard,
+    update_widget_config,
 )
 from backend.models import DashboardCreate, DashboardResponse, ChatRequest, ChatResponse
 from backend.epics_manager import EPICSManager
@@ -150,6 +151,17 @@ async def api_get_dashboard(slug: str):
     if not result:
         raise HTTPException(status_code=404, detail="Dashboard not found")
     return result
+
+
+@router.patch("/api/dashboards/{slug}/widgets/{widget_id}/config")
+async def api_patch_widget_config(slug: str, widget_id: str, request: Request):
+    patch = await request.json()
+    if not isinstance(patch, dict):
+        raise HTTPException(status_code=400, detail="Body must be a JSON object")
+    result = await update_widget_config(slug, widget_id, patch)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Dashboard or widget not found")
+    return {"status": "ok"}
 
 
 # ── PV History ──────────────────────────────────────────────────────────

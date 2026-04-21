@@ -10,6 +10,11 @@ class ColorRange(BaseModel):
     color: str = "#22c55e"
 
 
+class StoredPosition(BaseModel):
+    name: str
+    value: float
+
+
 class WidgetConfig(BaseModel):
     label: Optional[str] = None
     units: Optional[str] = None
@@ -26,6 +31,7 @@ class WidgetConfig(BaseModel):
     enumLabels: Optional[list[str]] = None
     # Motor specific
     showStop: Optional[bool] = True
+    storedPositions: Optional[list[StoredPosition]] = None
     # LED specific
     onColor: Optional[str] = "#22c55e"
     offColor: Optional[str] = "#64748b"

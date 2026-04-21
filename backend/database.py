@@ -231,6 +231,49 @@ async def get_all_dashboards_with_config() -> list[dict]:
             return result
 
 
+async def update_widget_config(slug: str, widget_id: str, patch: dict) -> dict | None:
+    """Merge `patch` into the specified widget's config within a dashboard.
+
+    Returns the updated dashboard dict, or None if the dashboard or widget
+    does not exist. Read-modify-write is not atomic; concurrent updates to the
+    same dashboard may race.
+    """
+    dashboard = await get_dashboard(slug)
+    if not dashboard:
+        return None
+
+    config = dashboard["config"]
+    widgets = config.get("widgets", [])
+    found = False
+    for w in widgets:
+        if w.get("id") == widget_id:
+            w_cfg = w.get("config") or {}
+            w_cfg.update(patch)
+            w["config"] = w_cfg
+            found = True
+            break
+    if not found:
+        return None
+
+    now = datetime.now(timezone.utc).isoformat()
+    config_json = json.dumps(config)
+
+    if USE_POSTGRES:
+        async with _pool.acquire() as conn:
+            await conn.execute(
+                "UPDATE dashboards SET config=$1, updated_at=$2 WHERE slug=$3 AND deleted=0",
+                config_json, now, slug)
+    else:
+        import aiosqlite
+        async with aiosqlite.connect(_DB_PATH) as db:
+            await db.execute(
+                "UPDATE dashboards SET config=?, updated_at=? WHERE slug=? AND deleted=0",
+                (config_json, now, slug))
+            await db.commit()
+
+    return await get_dashboard(slug)
+
+
 async def delete_dashboard(slug: str) -> bool:
     """Soft-delete a dashboard by setting deleted = 1."""
     if USE_POSTGRES:
