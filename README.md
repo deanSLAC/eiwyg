@@ -97,3 +97,5 @@ frontend/
 - **Backend:** Python, FastAPI, WebSocket, caproto
 - **Database:** SQLite (aiosqlite) or PostgreSQL (asyncpg)
 - **Frontend:** Vanilla JS, [Gridstack.js](https://gridstackjs.com/) 10, [Chart.js](https://www.chartjs.org/) 4 (CDN, no build step)
+
+
