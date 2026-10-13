@@ -39,17 +39,42 @@ class PVHistory:
             if len(self.points) > self.max_raw_points:
                 self._compact()
 
+    # (max_age_seconds, bin_width_seconds): when compacting, points are
+    # bin-averaged at a width set by their age. Bins are aligned to
+    # absolute time, so re-compacting an already-binned point is a no-op.
+    COMPACT_TIERS = [(3600, 1.0), (6 * 3600, 10.0), (86400, 60.0),
+                     (float("inf"), 600.0)]
+
     def _compact(self):
-        """Bin-average the older half of the buffer down to a quarter of
-        capacity, keeping recent points at full resolution. Repeated
-        compactions coarsen older data progressively."""
+        """Bin-average the older half of the buffer by age tier, keeping
+        recent points at full resolution. Data from the last hour keeps
+        1 s resolution; older data is coarsened progressively."""
         half = len(self.points) // 2
+        now = time.time()
         older = self.points[:half]
-        t_range = older[-1][0] - older[0][0]
-        bin_width = t_range / max(1, self.max_raw_points // 4)
-        if bin_width <= 0:
-            return
-        self.points = _bin_average(older, bin_width) + self.points[half:]
+        compacted = []
+        start = 0
+        # Points are sorted oldest first; walk tiers from coarsest to finest
+        for max_age, width in reversed(self.COMPACT_TIERS):
+            end = start
+            while end < len(older) and now - older[end][0] > self._tier_floor(max_age):
+                end += 1
+            if end > start:
+                compacted += _bin_average(older[start:end], width)
+            start = end
+        self.points = compacted + self.points[half:]
+        # Leave headroom so the next compaction is max/4 samples away; if
+        # binning alone can't get there (e.g. a very fast PV), drop the
+        # oldest points.
+        limit = self.max_raw_points * 3 // 4
+        if len(self.points) > limit:
+            del self.points[:len(self.points) - limit]
+
+    def _tier_floor(self, max_age: float) -> float:
+        """Lower age bound of the tier whose upper bound is max_age."""
+        ages = [a for a, _ in self.COMPACT_TIERS]
+        i = ages.index(max_age)
+        return ages[i - 1] if i > 0 else 0.0
 
     def get_history(self, time_window_seconds: float, max_points: int) -> list[dict]:
         """Return points within time_window, bin-averaged into bins of

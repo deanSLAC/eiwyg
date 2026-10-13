@@ -41,7 +41,7 @@ class WidgetConfig(BaseModel):
     minValue: Optional[float] = 0.0
     maxValue: Optional[float] = 100.0
     # Plot specific
-    maxPoints: Optional[int] = 500
+    maxPoints: Optional[int] = 3600
     timeWindow: Optional[float] = 3600.0  # seconds
     lineColor: Optional[str] = "#3b82f6"
     fillArea: Optional[bool] = False

@@ -1245,7 +1245,7 @@ function resolveVariables(pvName, variables) {
                 binWidth: 0,       // ms; timeWindow / maxPoints
                 pending: [],       // live points received before history loads
                 historyLoaded: false,
-                maxPoints: cfg(widget, 'maxPoints', 500),
+                maxPoints: cfg(widget, 'maxPoints', 3600),
                 timeWindow: cfg(widget, 'timeWindow', 3600) * 1000, // store in ms
                 lineColor: cfg(widget, 'lineColor', _plotDefaultLineColor()),
                 fillArea: cfg(widget, 'fillArea', false),
@@ -1269,7 +1269,7 @@ function resolveVariables(pvName, variables) {
             if (!state) return;
 
             // Refresh config in case it changed
-            state.maxPoints = cfg(widget, 'maxPoints', 500);
+            state.maxPoints = cfg(widget, 'maxPoints', 3600);
             state.timeWindow = cfg(widget, 'timeWindow', 3600) * 1000;
             state.lineColor = cfg(widget, 'lineColor', _plotDefaultLineColor());
             state.fillArea = cfg(widget, 'fillArea', false);
@@ -1302,8 +1302,7 @@ function resolveVariables(pvName, variables) {
 
             if (!state.historyLoaded) state.pending.push({ t: ts, v: val });
             _plotAddPoint(state, ts, val);
-            _plotPrune(state);
-            _plotUpdateChart(container, state);
+            _plotScheduleRedraw(container, state);
         },
 
         getSubscribePVs: function (widget) {
@@ -1335,7 +1334,7 @@ function resolveVariables(pvName, variables) {
         if (!state || !widget.pv) return;
 
         var windowSec = (state.timeWindow / 1000) || 3600;
-        var maxPts = state.maxPoints || 500;
+        var maxPts = state.maxPoints || 3600;
         var url = (window.EIWYG_BASE || '') + '/api/pv-history/' + encodeURIComponent(widget.pv)
             + '?window=' + windowSec + '&max_points=' + maxPts;
 
@@ -1370,7 +1369,7 @@ function resolveVariables(pvName, variables) {
     // as history and existing bins never shift. Each bin keeps sums and a
     // count so averages stay exact as points are added.
     function _plotBinWidth(state) {
-        var n = Math.max(1, state.maxPoints || 500);
+        var n = Math.max(1, state.maxPoints || 3600);
         return Math.max(1, (state.timeWindow || 3600000) / n);
     }
 
@@ -1400,6 +1399,17 @@ function resolveVariables(pvName, variables) {
     function _plotPoints(state) {
         return state.bins.map(function (b) {
             return { t: b.tSum / b.n, v: b.vSum / b.n, n: b.n };
+        });
+    }
+
+    // Coalesce redraws from fast PVs into at most one per animation frame.
+    function _plotScheduleRedraw(container, state) {
+        if (state.redrawPending) return;
+        state.redrawPending = true;
+        requestAnimationFrame(function () {
+            state.redrawPending = false;
+            _plotPrune(state);
+            _plotUpdateChart(container, state);
         });
     }
 

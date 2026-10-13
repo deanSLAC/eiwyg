@@ -32,7 +32,7 @@ Available component types:
 - "enum-selector": Dropdown for enum PVs.
 - "label": Static text label (no PV needed).
 - "detector-display": Shows detector counts, count rate, and status.
-- "plot": Time-series line chart tracking a PV over time. Config: maxPoints (default 500), timeWindow in seconds (default 3600), lineColor, fillArea, yMin, yMax.
+- "plot": Time-series line chart tracking a PV over time. Config: maxPoints (default 3600, i.e. 1 s per point over the default window), timeWindow in seconds (default 3600), lineColor, fillArea, yMin, yMax.
 """
 
 SYSTEM_PROMPT = f"""You are an assistant that helps users build EPICS control system dashboards.

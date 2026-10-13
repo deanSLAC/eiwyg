@@ -506,7 +506,7 @@ class EditorApp {
                 else if (tw >= 3600) twLabel = (tw / 3600) + 'h';
                 else if (tw >= 60) twLabel = (tw / 60) + 'm';
                 else twLabel = tw + 's';
-                const maxPts = widget.config.maxPoints || 500;
+                const maxPts = widget.config.maxPoints || 3600;
                 const lineColor = widget.config.lineColor || '#3b82f6';
                 valueDisplay = `
                     <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:4px;">
@@ -793,7 +793,7 @@ class EditorApp {
                     <div class="config-group-title">Plot Settings</div>
                     <div class="config-field">
                         <label for="cfg-maxPoints">Max Points</label>
-                        <input type="number" id="cfg-maxPoints" value="${widget.config.maxPoints || 500}" min="10" max="10000">
+                        <input type="number" id="cfg-maxPoints" value="${widget.config.maxPoints || 3600}" min="10" max="10000">
                     </div>
                     <div class="config-field">
                         <label for="cfg-timeWindow">Time Window</label>
@@ -958,7 +958,7 @@ class EditorApp {
 
         // Plot fields
         bindInput('cfg-maxPoints', (e) => {
-            this.updateWidgetConfig(id, { config: { maxPoints: parseInt(e.target.value, 10) || 500 } });
+            this.updateWidgetConfig(id, { config: { maxPoints: parseInt(e.target.value, 10) || 3600 } });
         });
         const updateTimeWindow = () => {
             const valEl = document.getElementById('cfg-timeWindowValue');
