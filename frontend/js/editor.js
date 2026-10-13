@@ -366,18 +366,8 @@ class EditorApp {
     /* ── Widget Rendering ─────────────────────────────────────────── */
 
     _renderWidgetContent(widget) {
-        // Check if components.js has registered a renderer
-        const comps = window.EIWYG_COMPONENTS;
-        if (comps && comps[widget.type] && typeof comps[widget.type].render === 'function') {
-            try {
-                return comps[widget.type].render(widget) +
-                    `<button class="widget-delete-btn" title="Delete">&times;</button>`;
-            } catch (err) {
-                console.warn(`Component render error for ${widget.type}:`, err);
-            }
-        }
-
-        // Fallback basic renderer
+        // components.js renderers are DOM-based (render(container, widget)) and
+        // are used by the viewer; the editor uses its own HTML-string preview.
         return this._basicRender(widget);
     }
 
@@ -575,13 +565,8 @@ class EditorApp {
         const wasSelected = el.classList.contains('widget-selected');
         content.innerHTML = this._renderWidgetContent(widget);
 
-        // Re-bind click
-        content.addEventListener('click', (e) => {
-            if (e.target.closest('.widget-delete-btn')) return;
-            e.stopPropagation();
-            this.selectWidget(id);
-        });
-
+        // The select-on-click listener bound in addWidget persists on `content`;
+        // only the delete button is recreated by innerHTML and needs re-binding.
         // Re-bind delete
         const delBtn = content.querySelector('.widget-delete-btn');
         if (delBtn) {
