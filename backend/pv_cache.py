@@ -4,15 +4,22 @@ Stores timestamped PV values and compacts them using bin-averaging
 when the buffer exceeds a threshold. Queries return downsampled data
 for a given time window and max point count.
 """
+import bisect
+import math
 import time
 import threading
 
 
 class PVHistory:
-    """Rolling time-series buffer for a single PV with auto-compaction."""
+    """Rolling time-series buffer for a single PV with auto-compaction.
+
+    Each point is (mean_timestamp, mean_value, sample_count). Raw samples
+    have count 1; compacted points carry the number of samples they
+    average so later averaging stays correctly weighted.
+    """
 
     def __init__(self, max_raw_points: int = 20_000):
-        self.points: list[tuple[float, float]] = []  # (timestamp, value)
+        self.points: list[tuple[float, float, int]] = []
         self.max_raw_points = max_raw_points
         self._lock = threading.Lock()
 
@@ -23,7 +30,12 @@ class PVHistory:
         except (TypeError, ValueError):
             return
         with self._lock:
-            self.points.append((ts, v))
+            # Monitor updates normally arrive in time order; keep the
+            # buffer sorted if one doesn't.
+            if self.points and ts < self.points[-1][0]:
+                bisect.insort(self.points, (ts, v, 1))
+            else:
+                self.points.append((ts, v, 1))
             if len(self.points) > self.max_raw_points:
                 self._compact()
 
@@ -32,69 +44,54 @@ class PVHistory:
         capacity, keeping recent points at full resolution. Repeated
         compactions coarsen older data progressively."""
         half = len(self.points) // 2
-        older = _downsample(self.points[:half], self.max_raw_points // 4)
-        self.points = older + self.points[half:]
+        older = self.points[:half]
+        t_range = older[-1][0] - older[0][0]
+        bin_width = t_range / max(1, self.max_raw_points // 4)
+        if bin_width <= 0:
+            return
+        self.points = _bin_average(older, bin_width) + self.points[half:]
 
     def get_history(self, time_window_seconds: float, max_points: int) -> list[dict]:
-        """Return points within time_window, downsampled to max_points."""
+        """Return points within time_window, bin-averaged into bins of
+        time_window / max_points seconds aligned to absolute time
+        (bin = floor(t / width)), matching the client's plot bins."""
         now = time.time()
         cutoff = now - time_window_seconds
 
         with self._lock:
-            filtered = [(t, v) for t, v in self.points if t >= cutoff]
+            i = bisect.bisect_left(self.points, (cutoff,))
+            filtered = self.points[i:]
 
-        if len(filtered) <= max_points:
-            return [{"t": t, "v": v} for t, v in filtered]
-
-        downsampled = _downsample(filtered, max_points)
-        return [{"t": t, "v": v} for t, v in downsampled]
+        if len(filtered) > max_points:
+            filtered = _bin_average(filtered, time_window_seconds / max_points)
+        return [{"t": t, "v": v, "n": n} for t, v, n in filtered]
 
     @property
     def size(self) -> int:
         return len(self.points)
 
 
-def _downsample(points: list[tuple[float, float]], max_points: int) -> list[tuple[float, float]]:
-    """Downsample a sorted list of (timestamp, value) pairs via bin averaging."""
-    n = len(points)
-    if n <= max_points or max_points < 1:
-        return list(points)
-
-    t_min = points[0][0]
-    t_max = points[-1][0]
-    t_range = t_max - t_min
-    if t_range <= 0:
-        # All same timestamp — just take evenly spaced samples
-        step = max(1, n // max_points)
-        return [points[i] for i in range(0, n, step)][:max_points]
-
-    bin_width = t_range / max_points
+def _bin_average(points: list[tuple[float, float, int]],
+                 bin_width: float) -> list[tuple[float, float, int]]:
+    """Count-weighted average of sorted (t, v, n) points into fixed-width
+    bins aligned to absolute time. Each output point sits at the mean
+    timestamp of the samples it contains."""
     binned = []
-    bin_start = t_min
-    bin_t_sum = 0.0
-    bin_v_sum = 0.0
-    bin_count = 0
-
-    for t, v in points:
-        # If this point belongs to a new bin, flush the current bin
-        while t >= bin_start + bin_width and bin_count > 0:
-            binned.append((bin_t_sum / bin_count, bin_v_sum / bin_count))
-            bin_t_sum = 0.0
-            bin_v_sum = 0.0
-            bin_count = 0
-            bin_start += bin_width
-            # Skip empty bins
-            while t >= bin_start + bin_width:
-                bin_start += bin_width
-
-        bin_t_sum += t
-        bin_v_sum += v
-        bin_count += 1
-
-    # Flush last bin
-    if bin_count > 0:
-        binned.append((bin_t_sum / bin_count, bin_v_sum / bin_count))
-
+    cur_idx = None
+    t_sum = v_sum = 0.0
+    count = 0
+    for t, v, n in points:
+        idx = math.floor(t / bin_width)
+        if idx != cur_idx and count > 0:
+            binned.append((t_sum / count, v_sum / count, count))
+            t_sum = v_sum = 0.0
+            count = 0
+        cur_idx = idx
+        t_sum += t * n
+        v_sum += v * n
+        count += n
+    if count > 0:
+        binned.append((t_sum / count, v_sum / count, count))
     return binned
 
 

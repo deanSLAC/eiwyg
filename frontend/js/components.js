@@ -1293,7 +1293,7 @@ function resolveVariables(pvName, variables) {
                 var old = _plotPoints(state);
                 state.binWidth = bw;
                 state.bins = [];
-                old.forEach(function (p) { _plotAddPoint(state, p.t, p.v); });
+                old.forEach(function (p) { _plotAddPoint(state, p.t, p.v, p.n); });
             }
 
             var ts = (pvData.timestamp || Date.now() / 1000) * 1000; // convert to ms
@@ -1345,13 +1345,13 @@ function resolveVariables(pvName, variables) {
                 if (!json.data || !container._plotState) return;
                 // Merge history — convert seconds timestamps to ms
                 var hist = json.data.map(function (p) {
-                    return { t: p.t * 1000, v: p.v };
+                    return { t: p.t * 1000, v: p.v, n: p.n || 1 };
                 });
                 // Rebuild bins from history, then replay live points that
                 // arrived while loading and are newer than the history.
                 var lastHistT = hist.length ? hist[hist.length - 1].t : -Infinity;
                 state.bins = [];
-                hist.forEach(function (p) { _plotAddPoint(state, p.t, p.v); });
+                hist.forEach(function (p) { _plotAddPoint(state, p.t, p.v, p.n); });
                 state.pending.forEach(function (p) {
                     if (p.t > lastHistT) _plotAddPoint(state, p.t, p.v);
                 });
@@ -1374,16 +1374,18 @@ function resolveVariables(pvName, variables) {
         return Math.max(1, (state.timeWindow || 3600000) / n);
     }
 
-    function _plotAddPoint(state, t, v) {
+    // n = number of samples (t, v) already averages; 1 for a raw sample.
+    function _plotAddPoint(state, t, v, n) {
+        n = n || 1;
         var bins = state.bins;
         var idx = Math.floor(t / state.binWidth);
         var i = bins.length - 1;
         // Usually the newest bin; walk back for out-of-order points
         while (i >= 0 && bins[i].idx > idx) i--;
         if (i >= 0 && bins[i].idx === idx) {
-            bins[i].tSum += t; bins[i].vSum += v; bins[i].n++;
+            bins[i].tSum += t * n; bins[i].vSum += v * n; bins[i].n += n;
         } else {
-            bins.splice(i + 1, 0, { idx: idx, tSum: t, vSum: v, n: 1 });
+            bins.splice(i + 1, 0, { idx: idx, tSum: t * n, vSum: v * n, n: n });
         }
     }
 
@@ -1397,7 +1399,7 @@ function resolveVariables(pvName, variables) {
 
     function _plotPoints(state) {
         return state.bins.map(function (b) {
-            return { t: b.tSum / b.n, v: b.vSum / b.n };
+            return { t: b.tSum / b.n, v: b.vSum / b.n, n: b.n };
         });
     }
 
@@ -1427,7 +1429,9 @@ function resolveVariables(pvName, variables) {
                         borderWidth: 1.5,
                         pointRadius: 0,
                         pointHitRadius: 4,
-                        tension: 0.1
+                        // Straight segments: a curve would draw values
+                        // between samples that were never measured.
+                        tension: 0
                     }]
                 },
                 options: {

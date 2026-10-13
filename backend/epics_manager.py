@@ -406,7 +406,13 @@ class EPICSManager:
             def _monitor_callback(sub, response):
                 value = response.data[0] if len(response.data) == 1 \
                     else list(response.data)
-                ts = time.time()
+                # Use the IOC's record timestamp so plotted points sit at
+                # the time the value was measured, not when it arrived.
+                # Records never processed carry the EPICS epoch (1990).
+                ts = getattr(response.metadata, 'timestamp', None) \
+                    if response.metadata else None
+                if not ts or ts < 1e9:
+                    ts = time.time()
                 severity = getattr(response.metadata, 'severity', 0) \
                     if response.metadata else 0
 
