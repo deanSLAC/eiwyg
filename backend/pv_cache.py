@@ -28,11 +28,12 @@ class PVHistory:
                 self._compact()
 
     def _compact(self):
-        """Bin-average down to half capacity, preserving time range."""
-        target = self.max_raw_points // 2
-        if len(self.points) <= target:
-            return
-        self.points = _downsample(self.points, target)
+        """Bin-average the older half of the buffer down to a quarter of
+        capacity, keeping recent points at full resolution. Repeated
+        compactions coarsen older data progressively."""
+        half = len(self.points) // 2
+        older = _downsample(self.points[:half], self.max_raw_points // 4)
+        self.points = older + self.points[half:]
 
     def get_history(self, time_window_seconds: float, max_points: int) -> list[dict]:
         """Return points within time_window, downsampled to max_points."""

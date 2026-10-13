@@ -1239,9 +1239,11 @@ function resolveVariables(pvName, variables) {
             container.innerHTML = html;
 
             // Store per-widget state on the container
-            container._plotState = {
+            var state = container._plotState = {
                 chart: null,
-                data: [],          // [{t: timestamp_ms, v: value}, ...]
+                bins: [],          // [{idx, tSum, vSum, n}, ...] fixed-width, time-aligned
+                binWidth: 0,       // ms; timeWindow / maxPoints
+                pending: [],       // live points received before history loads
                 historyLoaded: false,
                 maxPoints: cfg(widget, 'maxPoints', 500),
                 timeWindow: cfg(widget, 'timeWindow', 3600) * 1000, // store in ms
@@ -1252,6 +1254,7 @@ function resolveVariables(pvName, variables) {
                 units: cfg(widget, 'units', ''),
                 pv: widget.pv || null
             };
+            state.binWidth = _plotBinWidth(state);
 
             // Fetch history after a short delay to ensure canvas is in DOM
             if (widget.pv && typeof Chart !== 'undefined') {
@@ -1277,30 +1280,29 @@ function resolveVariables(pvName, variables) {
             // If PV changed, reload history
             if (widget.pv && widget.pv !== state.pv) {
                 state.pv = widget.pv;
-                state.data = [];
+                state.bins = [];
+                state.pending = [];
                 state.historyLoaded = false;
                 _plotFetchHistory(container, widget);
                 return;
             }
 
-            // Append the new data point
+            // Window or point budget changed: rebin what we have
+            var bw = _plotBinWidth(state);
+            if (bw !== state.binWidth) {
+                var old = _plotPoints(state);
+                state.binWidth = bw;
+                state.bins = [];
+                old.forEach(function (p) { _plotAddPoint(state, p.t, p.v); });
+            }
+
             var ts = (pvData.timestamp || Date.now() / 1000) * 1000; // convert to ms
             var val = parseFloat(pvData.value);
             if (isNaN(val)) return;
 
-            state.data.push({ t: ts, v: val });
-
-            // Enforce max points
-            if (state.data.length > state.maxPoints * 1.5) {
-                _plotCompact(state);
-            }
-
-            // Prune old data outside time window
-            var cutoff = Date.now() - state.timeWindow;
-            while (state.data.length > 0 && state.data[0].t < cutoff) {
-                state.data.shift();
-            }
-
+            if (!state.historyLoaded) state.pending.push({ t: ts, v: val });
+            _plotAddPoint(state, ts, val);
+            _plotPrune(state);
             _plotUpdateChart(container, state);
         },
 
@@ -1345,12 +1347,17 @@ function resolveVariables(pvName, variables) {
                 var hist = json.data.map(function (p) {
                     return { t: p.t * 1000, v: p.v };
                 });
-                // Prepend history to any live data that arrived while loading
-                var liveData = state.data.filter(function (p) {
-                    return hist.length === 0 || p.t > hist[hist.length - 1].t;
+                // Rebuild bins from history, then replay live points that
+                // arrived while loading and are newer than the history.
+                var lastHistT = hist.length ? hist[hist.length - 1].t : -Infinity;
+                state.bins = [];
+                hist.forEach(function (p) { _plotAddPoint(state, p.t, p.v); });
+                state.pending.forEach(function (p) {
+                    if (p.t > lastHistT) _plotAddPoint(state, p.t, p.v);
                 });
-                state.data = hist.concat(liveData);
+                state.pending = [];
                 state.historyLoaded = true;
+                _plotPrune(state);
                 _plotUpdateChart(container, state);
             })
             .catch(function (err) {
@@ -1358,38 +1365,40 @@ function resolveVariables(pvName, variables) {
             });
     }
 
-    function _plotCompact(state) {
-        // Bin-average down to maxPoints
-        var target = state.maxPoints;
-        var data = state.data;
-        if (data.length <= target) return;
+    // Data is kept in fixed-width bins aligned to absolute time
+    // (bin = floor(t / binWidth)), so live points average into the same bins
+    // as history and existing bins never shift. Each bin keeps sums and a
+    // count so averages stay exact as points are added.
+    function _plotBinWidth(state) {
+        var n = Math.max(1, state.maxPoints || 500);
+        return Math.max(1, (state.timeWindow || 3600000) / n);
+    }
 
-        var tMin = data[0].t;
-        var tMax = data[data.length - 1].t;
-        var binWidth = (tMax - tMin) / target;
-        if (binWidth <= 0) return;
-
-        var binned = [];
-        var binStart = tMin;
-        var tSum = 0, vSum = 0, count = 0;
-
-        for (var i = 0; i < data.length; i++) {
-            var p = data[i];
-            while (p.t >= binStart + binWidth && count > 0) {
-                binned.push({ t: tSum / count, v: vSum / count });
-                tSum = 0; vSum = 0; count = 0;
-                binStart += binWidth;
-                while (p.t >= binStart + binWidth) binStart += binWidth;
-            }
-            tSum += p.t;
-            vSum += p.v;
-            count++;
+    function _plotAddPoint(state, t, v) {
+        var bins = state.bins;
+        var idx = Math.floor(t / state.binWidth);
+        var i = bins.length - 1;
+        // Usually the newest bin; walk back for out-of-order points
+        while (i >= 0 && bins[i].idx > idx) i--;
+        if (i >= 0 && bins[i].idx === idx) {
+            bins[i].tSum += t; bins[i].vSum += v; bins[i].n++;
+        } else {
+            bins.splice(i + 1, 0, { idx: idx, tSum: t, vSum: v, n: 1 });
         }
-        if (count > 0) {
-            binned.push({ t: tSum / count, v: vSum / count });
-        }
+    }
 
-        state.data = binned;
+    function _plotPrune(state) {
+        var cutoff = Date.now() - state.timeWindow;
+        var bins = state.bins;
+        var k = 0;
+        while (k < bins.length && bins[k].tSum / bins[k].n < cutoff) k++;
+        if (k > 0) bins.splice(0, k);
+    }
+
+    function _plotPoints(state) {
+        return state.bins.map(function (b) {
+            return { t: b.tSum / b.n, v: b.vSum / b.n };
+        });
     }
 
     function _plotUpdateChart(container, state) {
@@ -1398,7 +1407,7 @@ function resolveVariables(pvName, variables) {
         var canvas = container.querySelector('[data-role="plot-canvas"]');
         if (!canvas) return;
 
-        var chartData = state.data.map(function (p) {
+        var chartData = _plotPoints(state).map(function (p) {
             return { x: p.t, y: p.v };
         });
 
